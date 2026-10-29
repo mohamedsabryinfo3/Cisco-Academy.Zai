@@ -20,20 +20,16 @@ import { test } from "node:test";
 // Simplest: use bun's TS support. Fallback: pre-built JS.
 let COMMANDS = [];
 try {
-  // Try bun-style TS import first
-  const mod = await import("../src/lib/cisco-data.ts");
-  COMMANDS = mod.COMMANDS;
-} catch {
-  // Fallback: pre-built data dump (created by `node tests/build-data.mjs`)
-  try {
-    const fallback = await import("./cisco-data-build.mjs");
-    COMMANDS = fallback.COMMANDS;
-  } catch {
-    console.error(
-      "Could not load COMMANDS. Run `bun test tests/data-validation.test.mjs` instead."
-    );
-    process.exit(1);
-  }
+  // Import all command sources and combine them
+  const base = await import("../src/lib/cisco-data.ts");
+  const supp = await import("../src/lib/supplementary-commands.ts");
+  const exp = await import("../src/lib/expansion-commands.ts");
+  const v12 = await import("../src/lib/v12-commands.ts");
+  COMMANDS = [...base.COMMANDS, ...supp.SUPPLEMENTARY_COMMANDS, ...exp.EXPANSION_COMMANDS, ...v12.V12_COMMANDS];
+} catch (e) {
+  console.error("Could not load COMMANDS:", e.message);
+  console.error("Run with: bun test tests/data-validation.test.mjs");
+  process.exit(1);
 }
 
 // ===================================================================
@@ -96,6 +92,87 @@ const CRITICAL_COMMANDS = [
   "show debugging",
   "show archive",
   "show controllers",
+
+  // Gap-fill — added in v10
+  "show ip nat statistics",
+  "show vrrp",
+  "show standby",
+  "show glbp",
+  "show mac address-table",
+  "show ip bgp",
+  "show ip bgp neighbors",
+  "show ip ospf interface",
+  "show ip ospf database",
+  "show route-map",
+  "show ip prefix-list",
+  "show ip sla statistics",
+  "show track",
+  "show ip dhcp pool",
+  "show ip dhcp conflict",
+  "show errdisable recovery",
+  "show interfaces switchport",
+  "show udld",
+  "show spanning-tree inconsistentports",
+  "show ip ssh",
+  "show running-config diff",
+  "vrrp",
+  "glbp",
+  "udld",
+  "clear counters",
+  "clear ip ospf process",
+  "clear ip bgp",
+  "service timestamps log",
+  "logging buffered",
+  "logging trap",
+  "ip http secure-server",
+  "dir",
+  "boot system",
+  "spanning-tree guard root",
+
+  // Expansion v11 — routing protocol audit
+  "router isis",
+  "show isis neighbors",
+  "show isis database",
+  "ipv6 router rip",
+  "router ospfv3",
+  "router eigrp",
+  "clear ip route",
+  "passive-interface",
+  "distribute-list",
+  "area range",
+  "summary-address",
+  "default-information originate",
+  "route-reflector-client",
+  "switchport nonegotiate",
+  "monitor session",
+  "ip verify source",
+  "control-plane",
+  "dot1x",
+  "radius server",
+  "tacacs server",
+  "encapsulation ppp",
+  "encapsulation hdlc",
+  "pppoe enable",
+
+  // v12 — mandatory audit terms
+  "show ip route rip",
+  "show ip rip database",
+  "eigrp stub",
+  "variance",
+  "offset-list",
+  "metric weights",
+  "neighbor route-map",
+  "set community",
+  "maximum-prefix",
+  "uplinkfast",
+  "backbonefast",
+  "storm-control",
+  "ipv6 access-list",
+  "show history",
+  "show file systems",
+  "show boot",
+  "ip default-gateway",
+  "spanning-tree vlan priority",
 ];
 
 // ===================================================================

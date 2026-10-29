@@ -1,10 +1,13 @@
 import {
-  COMMANDS,
+  COMMANDS as BASE_COMMANDS,
   TOPIC_COVERAGE,
   TROUBLESHOOTING,
   CURRICULUM_VERSIONS,
   PLATFORMS,
 } from "./cisco-data";
+import { SUPPLEMENTARY_COMMANDS } from "./supplementary-commands";
+import { EXPANSION_COMMANDS } from "./expansion-commands";
+import { V12_COMMANDS } from "./v12-commands";
 import type {
   CiscoCommand,
   Platform,
@@ -13,6 +16,14 @@ import type {
   VerificationState,
   CommandStatus,
 } from "./cisco-types";
+
+// Combine base + supplementary + expansion + v12 commands
+export const COMMANDS: CiscoCommand[] = [
+  ...BASE_COMMANDS,
+  ...SUPPLEMENTARY_COMMANDS,
+  ...EXPANSION_COMMANDS,
+  ...V12_COMMANDS,
+];
 
 // ===================================================================
 // Search & filter helpers
