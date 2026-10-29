@@ -117,52 +117,132 @@ export function certRank(c: CertLevel): number {
   return CERT_ORDER.indexOf(c);
 }
 
-// Multi-token substring scoring with alias / historical name support
+// Normalize a string for search: lowercase, collapse whitespace,
+// unify separators (- _ . /) so "show-ip-route" matches "show ip route".
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[-_./]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Multi-token scoring search.
+// CRITICAL FIX: a command is NOT excluded if one token fails to match —
+// instead, tokens add to the score and we only exclude when the OVERALL
+// match is too weak. This prevents losing valid results when the user
+// types several keywords that don't all appear in the same field.
 export function scoreCommand(cmd: CiscoCommand, query: string): number {
   if (!query.trim()) return 1;
-  const q = query.trim().toLowerCase();
+  const q = normalize(query);
   const tokens = q.split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return 1;
 
-  const name = cmd.name.toLowerCase();
-  const aliases = (cmd.aliases ?? []).map((a) => a.toLowerCase());
-  const syntax = cmd.syntax.toLowerCase();
-  const topic = cmd.topic.toLowerCase();
-  const category = cmd.category.toLowerCase();
-  const summary = cmd.summary.toLowerCase();
-  const description = cmd.description.toLowerCase();
-  const modernAlt = (cmd.modernAlternative ?? "").toLowerCase();
-  const historical = (cmd.historicalNote ?? "").toLowerCase();
-  const tags = (cmd.tags ?? []).map((t) => t.toLowerCase());
+  const name = normalize(cmd.name);
+  const aliases = (cmd.aliases ?? []).map((a) => normalize(a));
+  const syntax = normalize(cmd.syntax);
+  const topic = normalize(cmd.topic);
+  const category = normalize(cmd.category);
+  const summary = normalize(cmd.summary);
+  const description = normalize(cmd.description);
+  const modernAlt = normalize(cmd.modernAlternative ?? "");
+  const historical = normalize(cmd.historicalNote ?? "");
+  const verifCommands = (cmd.verificationCommands ?? []).map((v) => normalize(v));
+  const tags = (cmd.tags ?? []).map((t) => normalize(t));
+  const platforms = cmd.platforms.map((p) => normalize(PLATFORM_LABELS[p]));
+  const certLabel = normalize(CERT_LABELS[cmd.certLevel]);
+  const curriculumVersions = (cmd.curriculumVersions ?? []).map((v) => normalize(v));
+  const commonErrors = (cmd.commonErrors ?? []).map((e) => normalize(e));
 
-  let score = 0;
+  // For "show ip route" type queries, also build a "name as one phrase" matcher
+  // so partial matches like "ip route" match the command "show ip route".
+  const namePhrase = name;
+
+  let totalScore = 0;
+  let matchedTokenCount = 0;
+
   for (const t of tokens) {
     let tokenScore = 0;
-    if (name === t) tokenScore += 60;
-    else if (name.startsWith(t)) tokenScore += 40;
-    else if (name.includes(t)) tokenScore += 25;
-    // alias match (e.g. "wr" => "write memory")
+
+    // 1. Exact name match (highest priority)
+    if (name === t) tokenScore += 100;
+    else if (name.startsWith(t)) tokenScore += 70;
+    else if (name.includes(t)) tokenScore += 45;
+    // Phrase match: query "ip route" matches command "show ip route"
+    else if (namePhrase.includes(t)) tokenScore += 30;
+
+    // 2. Alias match (e.g. "wr" => "write memory", "sh ip int br" => show ip interface brief)
     for (const a of aliases) {
-      if (a === t) tokenScore += 45;
-      else if (a.startsWith(t)) tokenScore += 25;
-      else if (a.includes(t)) tokenScore += 12;
+      if (a === t) tokenScore += 80;
+      else if (a.startsWith(t)) tokenScore += 50;
+      else if (a.includes(t)) tokenScore += 25;
     }
-    if (syntax.startsWith(t)) tokenScore += 20;
-    else if (syntax.includes(t)) tokenScore += 10;
-    if (topic.includes(t)) tokenScore += 15;
-    if (category.includes(t)) tokenScore += 10;
-    if (summary.includes(t)) tokenScore += 12;
-    if (description.includes(t)) tokenScore += 6;
+
+    // 3. Syntax match
+    if (syntax === t) tokenScore += 40;
+    else if (syntax.startsWith(t)) tokenScore += 30;
+    else if (syntax.includes(t)) tokenScore += 18;
+
+    // 4. Verification commands (often contain the same name as the command)
+    for (const v of verifCommands) {
+      if (v === t) tokenScore += 35;
+      else if (v.startsWith(t)) tokenScore += 20;
+      else if (v.includes(t)) tokenScore += 10;
+    }
+
+    // 5. Topic / category
+    if (topic === t) tokenScore += 25;
+    else if (topic.includes(t)) tokenScore += 15;
+    if (category === t) tokenScore += 20;
+    else if (category.includes(t)) tokenScore += 10;
+
+    // 6. Tags
+    for (const tag of tags) {
+      if (tag === t) tokenScore += 22;
+      else if (tag.includes(t)) tokenScore += 8;
+    }
+
+    // 7. Platforms
+    for (const p of platforms) {
+      if (p === t) tokenScore += 15;
+      else if (p.includes(t)) tokenScore += 6;
+    }
+
+    // 8. Cert label and curriculum versions (e.g. "CCNA", "ENCOR")
+    if (certLabel.includes(t)) tokenScore += 12;
+    for (const cv of curriculumVersions) {
+      if (cv.includes(t)) tokenScore += 8;
+    }
+
+    // 9. Modern alternative / historical note (for finding deprecated commands)
     if (modernAlt.includes(t)) tokenScore += 18;
     if (historical.includes(t)) tokenScore += 8;
-    for (const tag of tags) {
-      if (tag === t) tokenScore += 18;
-      else if (tag.includes(t)) tokenScore += 6;
+
+    // 10. Summary / description / common errors (low weight)
+    if (summary.includes(t)) tokenScore += 12;
+    if (description.includes(t)) tokenScore += 6;
+    for (const err of commonErrors) {
+      if (err.includes(t)) tokenScore += 4;
     }
-    if (tokenScore === 0) return 0;
-    score += tokenScore;
+
+    if (tokenScore > 0) {
+      matchedTokenCount++;
+      totalScore += tokenScore;
+    }
   }
-  return score;
+
+  // Require AT LEAST one token to match — but don't exclude if a single
+  // token out of many fails to match. This is the fix for the bug where
+  // searching "show ip ospf neighbor" would fail because "neighbor" was
+  // not in every field.
+  if (matchedTokenCount === 0) return 0;
+
+  // Bonus: if ALL tokens matched, boost the score (more relevant result)
+  if (matchedTokenCount === tokens.length) {
+    totalScore = Math.round(totalScore * 1.3);
+  }
+
+  return totalScore;
 }
 
 export function filterAndScore(

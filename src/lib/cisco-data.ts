@@ -5576,27 +5576,1642 @@ export const COMMANDS: CiscoCommand[] = [
     relatedCommandIds: ["cmd-vlan", "cmd-switchport-access-vlan"],
     tags: ["switching", "vlan", "vtp", "ccna"],
   },
+
+  // =================================================================
+  // SHOW / VERIFICATION commands — comprehensive coverage of the
+  // mandatory test list from the user (clock, ntp, vtp, vlan,
+  // trunk, stp, etherchannel, eigrp, access-lists, nat, dhcp,
+  // lldp, logging, processes, memory, users, privilege, debugging,
+  // archive, controllers, counters)
+  // =================================================================
+  {
+    id: "cmd-show-clock",
+    name: "show clock",
+    aliases: ["sh clock", "show clock detail"],
+    syntax: "show clock [detail]",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Router#",
+    certLevel: "Fundamentals",
+    scope: "certification",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض تاريخ ووقت الجهاز الحالي مع المنطقة الزمنية. الكلمة detail تُضمّن معلومات إضافية عن المصدر (NTP/manual) والدقة.",
+    description:
+      "show clock هو أمر التحقق الأساسي من حالة ساعة الجهاز. يعرض التاريخ والوقت بصيغة *HH:MM:SS.sss DOW MMM DD YYYY* بالإضافة إلى المنطقة الزمنية. الكلمة detail تُضيف: مصدر الوقت (NTP أو manual أو hardware calendar)، حالة المزامنة، فرق التوقيت عن UTC، ودقة الساعة. إذا عرض الأمر وقتًا خاطئًا أو مختلفًا عبر الأجهزة، فالمشكلة عادةً في إعداد NTP أو clock timezone أو clock summer-time.",
+    parameters: [
+      {
+        name: "detail",
+        description: "تعرض معلومات إضافية عن مصدر الوقت (NTP/manual) والدقة.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض الوقت الحالي",
+        code: "Router# show clock",
+        output: "*14:32:18.521 EET Wed Oct 29 2026*",
+        outputExplanation:
+          "الوقت الحالي 14:32:18 بتوقيت EET (Eastern European Time) يوم الأربعاء 29 أكتوبر 2026. العلامة * في البداية تدل على أن الساعة غير متزامنة مع NTP بدقة كاملة.",
+      },
+      {
+        context: "عرض تفصيلي مع مصدر الوقت",
+        code: "Router# show clock detail",
+        output:
+          "*14:32:18.521 EET Wed Oct 29 2026*\nTime source is NTP\nSummer time starts 02:00:00 EET Fri Apr 25 2026",
+        outputExplanation:
+          "الساعة متزامنة عبر NTP، وتظهر معلومات الانتقال إلى توقيت الصيف (summer time) في 25 أبريل.",
+      },
+    ],
+    verificationCommands: ["show ntp status", "show ntp associations", "clock timezone", "clock set"],
+    troubleshootingNotes: [
+      "إذا ظهر * قبل الوقت فالساعة غير متزامنة بدقة كاملة مع NTP — راجع show ntp status.",
+      "إذا كان الوقت صحيحًا لكن المنطقة الزمنية خاطئة، اضبط clock timezone.",
+    ],
+    commonErrors: [
+      "نسيان clock timezone فيظهر الوقت بصيغة UTC الافتراضية حتى لو كان NTP متزامنًا.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS System Management Command Reference — show clock",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-clock-set", "cmd-clock-timezone", "cmd-clock-summer-time", "cmd-show-ntp-status"],
+    tags: ["time", "clock", "verification", "fundamentals", "ntp"],
+  },
+  {
+    id: "cmd-clock-set",
+    name: "clock set",
+    syntax: "clock set <hh:mm:ss> <day> <month> <year>",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "Fundamentals",
+    scope: "certification",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يضبط وقت وتاريخ الساعة يدويًا على الجهاز. يُستخدم عند عدم توفر خادم NTP أو قبل إعداد NTP.",
+    description:
+      "clock set يضبط ساعة الجهاز اليدوية. يُستخدم عند عدم توفر NTP أو كإعداد أولي قبل مزامنة NTP. الصيغة: clock set HH:MM:SS DAY MONTH YEAR — مثال: clock set 14:30:00 29 October 2026. على بعض المنصات يجب أيضًا ضبط hardware calendar (calendar set) لحفظ الوقت عبر إعادة الإقلاع. في الإنتاج، استخدم NTP دائمًا بدلًا من الإعداد اليدوي.",
+    parameters: [
+      {
+        name: "<hh:mm:ss>",
+        description: "الوقت بصيغة ساعة:دقيقة:ثانية بنظام 24 ساعة.",
+        required: true,
+      },
+      {
+        name: "<day>",
+        description: "رقم اليوم في الشهر (1-31).",
+        required: true,
+      },
+      {
+        name: "<month>",
+        description: "اسم الشهر بالإنجليزية (January, February, ...).",
+        required: true,
+      },
+      {
+        name: "<year>",
+        description: "السنة الميلادية (مثل 2026).",
+        required: true,
+      },
+    ],
+    examples: [
+      {
+        context: "ضبط الوقت يدويًا",
+        code: "Router# clock set 14:30:00 29 October 2026",
+      },
+    ],
+    verificationCommands: ["show clock", "show clock detail"],
+    troubleshootingNotes: [
+      "إذا كان الانحراف أكبر من 1000 ثانية عن وقت NTP، فإن NTP يرفض المزامنة — اضبط الوقت يدويًا بـ clock set أولًا ثم فعّل NTP.",
+    ],
+    commonErrors: [
+      "كتابة الشهر بصيغة رقمية (10) بدلًا من الاسم (October) — Cisco IOS يقبل الاسم فقط.",
+    ],
+    undoMethod: "لا ينطبق — أعد ضبط الوقت بـ clock set بالقيمة الصحيحة.",
+    references: [
+      {
+        label: "Cisco IOS System Management Command Reference — clock set",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-clock", "cmd-clock-timezone", "cmd-ntp-server"],
+    tags: ["time", "clock", "fundamentals", "manual-config"],
+  },
+  {
+    id: "cmd-clock-summer-time",
+    name: "clock summer-time",
+    syntax: "clock summer-time <zone> {recurring | date | <start> <end>} [offset <minutes>]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "IOS 12.0+؛ IOS XE كافة",
+    cliMode: ["Global Configuration"],
+    promptShape: "Router(config)#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)"],
+    status: "Current",
+    summary:
+      "يُفعّل التوقيت الصيفي (Daylight Saving Time) تلقائيًا. recurring لتواريخ متكررة سنويًا، date لتواريخ محددة.",
+    description:
+      "clock summer-time يضبط قواعد التحويل بين التوقيت الشتوي والصيفي. الكلمة recurring تُستخدم للقواعد المتكررة سنويًا (مثلًا الأحد الأول من أبريل حتى الأحد الأخير من أكتوبر) — وهي القاعدة الأمريكية الافتراضية. لمنطقة زمنية مختلفة (مثل أوروبا) استخدم صيغة محددة: clock summer-time EET recurring 1 Sun Apr 2:00 last Sun Oct 3:00. الكلمة date تُستخدم لتواريخ محددة لمرة واحدة. هذا الأمر غير مدرج في CCNA v2 الحالي لكنه مهم للشبكات في مناطق تتبع التوقيت الصيفي.",
+    parameters: [
+      {
+        name: "<zone>",
+        description: "اسم المنطقة الزمنية الصيفية (مثل EEST، EDT، BST).",
+        required: true,
+      },
+      {
+        name: "recurring | date",
+        description: "recurring لتواريخ متكررة سنويًا. date لتواريخ محددة لمرة واحدة.",
+        required: true,
+        allowedValues: ["recurring", "date"],
+      },
+      {
+        name: "offset <minutes>",
+        description: "فرق الدقائق عن التوقيت القياسي. افتراضيًا 60.",
+        required: false,
+        defaultValue: "60",
+      },
+    ],
+    examples: [
+      {
+        context: "تفعيل التوقيت الصيفي المتكرر للقاعدة الأمريكية الافتراضية",
+        code: "Router(config)# clock summer-time EDT recurring",
+      },
+      {
+        context: "قاعدة مخصصة لتوقيت شرق أوروبا",
+        code: "Router(config)# clock summer-time EEST recurring 1 Sun Apr 2:00 last Sun Oct 3:00",
+      },
+    ],
+    verificationCommands: ["show clock detail", "show running-config | include summer-time"],
+    commonErrors: [
+      "نسيان ضبط clock timezone قبل clock summer-time — يجب ضبط المنطقة الزمنية أولًا.",
+    ],
+    undoMethod: "no clock summer-time <zone>.",
+    references: [
+      {
+        label: "Cisco IOS System Management Command Reference — clock summer-time",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-clock-timezone", "cmd-clock-set", "cmd-show-clock"],
+    tags: ["time", "clock", "summer-time", "dst", "extended"],
+  },
+  {
+    id: "cmd-show-ntp-status",
+    name: "show ntp status",
+    aliases: ["sh ntp status"],
+    syntax: "show ntp status",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض حالة مزامنة NTP العامة: متزامن/غير متزامن، الـ stratum، الانحراف عن الخادم، والوقت منذ آخر مزامنة.",
+    description:
+      "show ntp status يلخّص حالة NTP في سطر واحد أو سطرين. يخبرك فورًا إن كان الجهاز متزامنًا مع خادم NTP (Clock is synchronized) أو غير متزامن (Clock is unsynchronized). يعرض أيضًا الـ stratum (مستوى الخادم في هرمية NTP — 1 = خادم مرتبط بساعة ذرية، 16 = غير متزامن)، الانحراف عن الخادم (offset بالميلي ثانية)، والوقت منذ آخر مزامنة. هذا أول أمر تشخيص لأي مشكلة في NTP.",
+    examples: [
+      {
+        context: "التحقق من حالة NTP",
+        code: "Router# show ntp status",
+        output:
+          "Clock is synchronized, stratum 4, reference is 10.10.99.20\nnominal freq is 250.0000 Hz, actual freq is 250.0000 Hz, precision is 2**18\nreference time is E1234567.89ABCDEF (14:32:18.521 EET Wed Oct 29 2026)\nclock offset is 0.0054 msec, root delay is 1.23 msec\nroot dispersion is 4.56 msec, peer dispersion is 0.78 msec\nloopfilter state is 'CTRL' (Normal Control Loop), drift is 0.000001234 s/s\nsystem poll interval is 64, last update was 12 sec ago.",
+        outputExplanation:
+          "الساعة متزامنة بنجاح. stratum 4 يدل على 4 قفزات من مصدر UTC الأساسي. الانحراف 0.0054 ميلي ثانية (دقة ممتازة). آخر تحديث منذ 12 ثانية.",
+      },
+    ],
+    verificationCommands: ["show ntp associations", "show ntp associations detail", "show clock detail"],
+    troubleshootingNotes: [
+      "إذا عرض 'Clock is unsynchronized, stratum 16'، فالخادم غير قابل للوصول أو مصادقة NTP خاطئة. افحص show ntp associations detail لرؤية قيمة reach (يجب أن تنمو 1→3→7→17→37→77→177→377).",
+    ],
+    commonErrors: [
+      "تفسير 'stratum 16' على أنه خطأ في الإعداد — هو يعني فقط أن الجهاز غير متزامن حاليًا، راجع show ntp associations.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Network Management Command Reference — show ntp status",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-ntp-associations", "cmd-ntp-server", "cmd-show-clock"],
+    tags: ["ntp", "time", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-ntp-associations",
+    name: "show ntp associations",
+    aliases: ["sh ntp ass", "sh ntp associations"],
+    syntax: "show ntp associations [detail]",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض قائمة خوادم NTP المُعدّة وحالة كل خادم. الكلمة detail تُضيف معلومات تشخيصية كاملة عن كل خادم.",
+    description:
+      "show ntp associations يعرض كل خوادم NTP المُعدّة مع حالتها. الرمز * قبل عنوان الخادم يدل على أنه الخادم المختار للمزامنة. الأعمدة: address (عنوان الخادم)، ref clock (مصدر وقت الخادم)، st (stratum)، when (آخر استطلاع بالثواني)، poll (فترة الاستطلاع)، reach (حالة الوصول بصيغة ثمانية)، offset (الانحراف بالميلي ثانية)، disp (dispersion). الكلمة detail تُضيف: mode (active/passive/symmetric)، configured/static/peer، Authentication status، root delay، root dispersion. قيمة reach هي الأهم للتشخيص — يجب أن تنمو 1→3→7→17→37→77→177→377 عبر 8 استطلاعات متتالية. reach = 0 يعني الخادم غير قابل للوصول.",
+    parameters: [
+      {
+        name: "detail",
+        description: "تعرض معلومات تشخيصية كاملة عن كل خادم NTP.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض خوادم NTP",
+        code: "Router# show ntp associations",
+        output:
+          "address         ref clock       st   when   poll  reach  offset   delay  disp\n*~10.10.99.20    .GPS.            1    34     64    377    0.5       1.2    4.5\n *~203.0.113.5   10.10.99.20      2    52     64    377    1.2       2.3    5.1\n ~ master (synchronized)",
+        outputExplanation:
+          "خادمان مُعدّان. الخادم 10.10.99.20 (stratum 1، مرتبط بـ GPS) هو الخادم المختار للمزامنة (الرمز *). reach = 377 يدل على وصول مثالي (8 استطلاعات ناجحة). الخادم 203.0.113.5 (stratum 2) احتياطي.",
+      },
+    ],
+    verificationCommands: ["show ntp status", "show clock detail"],
+    troubleshootingNotes: [
+      "reach = 0: الخادم غير قابل للوصول. افحص: (1) المسار إلى الخادم (ping source <iface>)، (2) ACLs التي تمنع UDP 123، (3) مصادقة NTP (key-id/key-string/trusted-key).",
+      "reach لا ينمو: قد يكون الخادم يعمل لكنه يرفض المزامنة — افحص show ntp associations detail للتحقق من Authentication status.",
+    ],
+    commonErrors: [
+      "نسيان source interface في ntp server — NTP يستخدم IP الواجهة الخارجة افتراضيًا وقد لا يصل الخادم من هذا المصدر.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Network Management Command Reference — show ntp associations",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-ntp-status", "cmd-ntp-server", "cmd-show-clock"],
+    tags: ["ntp", "time", "verification", "troubleshooting", "ccna"],
+  },
+  {
+    id: "cmd-show-vtp-status",
+    name: "show vtp status",
+    aliases: ["sh vtp status", "show vtp"],
+    syntax: "show vtp status",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120) — كان مفصلًا", "CCNA v2.0 (200-301) — مختصر"],
+    status: "Current",
+    summary:
+      "يعرض حالة VTP (VLAN Trunking Protocol) الكاملة: الإصدار، الوضع (server/client/transparent/off)، اسم الـ domain، revision number، وعدد VLANs في قاعدة البيانات.",
+    description:
+      "show vtp status هو أمر التحقق الأساسي من VTP. أهم حقل فيه هو **Configuration Revision** — كل تغيير في VLAN database على محول server يزيد هذا الرقم، وعند توصيل محول جديد بـ revision أعلى من بقية الشبكة، يحذف VTP كل VLANs الموجودة ويستبدلها بقاعدة البيانات الجديدة! لهذا السبب ضع دائمًا المحولات الجديدة في VTP mode transparent أولًا. يعرض أيضًا: VTP Version (1/2/3)، VTP Operating Mode، VTP Domain Name، VTP Pruning Mode، VTP V2 Mode status، Number of existing VLANs. على NX-OS الأمر متشابه لكنه يدعم VTP v3 بشكل أوسع.",
+    examples: [
+      {
+        context: "التحقق من حالة VTP",
+        code: "Switch# show vtp status",
+        output:
+          "VTP Version capable            : 1 to 3\nVTP version running            : 2\nVTP Domain Name                : ENTERPRISE\nVTP Pruning Mode               : Disabled\nVTP Traps Generation           : Disabled\nDevice ID                      : 0011.2233.4455\nConfiguration last modified by 10.10.99.10 at 10-29-26 14:30:00\nLocal updater ID is 10.10.99.10 (interface Vlan99)\nVTP Operating Mode             : Transparent\nMaximum VLANs supported locally: 1005\nNumber of existing VLANs       : 12\nConfiguration Revision         : 4",
+        outputExplanation:
+          "VTP Version 2، Domain Name هو ENTERPRISE، VTP Operating Mode هو Transparent (الوضع الآمن)، 12 VLAN موجودة، Revision 4. الوضع Transparent يعني أن المحول لا يُزامن قاعدة VLANs مع الشبكة لكنه يعيد إرسال تحديثات VTP.",
+      },
+    ],
+    verificationCommands: ["show vtp counters", "show vtp password", "show vlan brief"],
+    troubleshootingNotes: [
+      "إذا اختفت VLANs فجأة من شبكة، افحص Configuration Revision على كل محول — likely محولًا جديدًا بـ revision أعلى أعاد كتابة قاعدة VLANs.",
+      "إذا لم يُزامن VTP بين محولين، تأكد من تطابق VTP Domain Name و VTP Password و VTP Version.",
+    ],
+    warnings: [
+      "قبل توصيل أي محول جديد بالشبكة، ضعه في VTP mode transparent أولًا لمنع إعادة كتابة قاعدة VLANs عن طريق الخطأ.",
+    ],
+    commonErrors: [
+      "تفسير Configuration Revision كرقم عادي — هو في الواقع مفتاح خطير يمكنه حذف VLANs الشبكة كاملة.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VTP",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-vtp-counters", "cmd-show-vtp-password", "cmd-vtp", "cmd-show-vlan-brief"],
+    tags: ["switching", "vlan", "vtp", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-vtp-counters",
+    name: "show vtp counters",
+    aliases: ["sh vtp counters"],
+    syntax: "show vtp counters",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120)"],
+    status: "Current",
+    summary:
+      "يعرض عدّادات حزم VTP المرسلة والمستقبَلة على كل واجهة trunk. يُستخدم لتشخيص فشل مزامنة VTP بين المحولات.",
+    description:
+      "show vtp counters يعرض إحصاءات حزم VTP لكل واجهة: عدد حزم Summary Advertisements و Subset Advertisements و Advertisement Requests المرسلة والمستقبَلة. يساعد على تشخيص سبب عدم مزامنة VTP بين محولين. إذا كانت العدّادات المرسلة على محول تزيد لكن المستقبَلة على المحول الآخر صفر، فالحزم تُسقَط في الطريق (غالبًا ACL أو منفذ trunk غير مُعدّ صحيح). غير مدرج في CCNA v2 الحالي لكنه مفيد للتشخيص.",
+    examples: [
+      {
+        context: "عرض عدّادات VTP",
+        code: "Switch# show vtp counters",
+        output:
+          "Trunk    Transmit          Receive\n         Summary Adverts   Summary Adverts\n         Subset Adverts    Subset Adverts\n         Advert Requests   Advert Requests\nGi1/0/1  12       4         8       0\nGi1/0/2  0        0         0       0",
+        outputExplanation:
+          "واجهة Gi1/0/1 أرسلت 12 Summary Advert و 4 Subset Advert واستقبلت 8 Summary Advert. واجهة Gi1/0/2 لا ترسل ولا تستقبل VTP — ربما ليست trunk أو VTP معطل عليها.",
+      },
+    ],
+    verificationCommands: ["show vtp status", "show interfaces trunk"],
+    troubleshootingNotes: [
+      "إذا كانت عدّادات الإرسال تزيد لكن الاستقبال على المحول البعيد صفر، فالحزم تُسقَط. افحص: (1) أن المنفذ trunk، (2) ACLs على المنفذ، (3) VTP Domain Name متطابق.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح العدّادات: clear vtp counters.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VTP",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-vtp-status", "cmd-show-vtp-password", "cmd-vtp"],
+    tags: ["switching", "vlan", "vtp", "verification", "troubleshooting", "extended"],
+  },
+  {
+    id: "cmd-show-vtp-password",
+    name: "show vtp password",
+    aliases: ["sh vtp password"],
+    syntax: "show vtp password",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "IOS 12.2(33)SXH+؛ IOS XE كافة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120)"],
+    status: "Current",
+    summary:
+      "يعرض كلمة سر VTP المُعدّة (بصيغة واضحة أو مشفّرة حسب الإعداد). مطلوب لتشخيص فشل المزامنة بين المحولات.",
+    description:
+      "show vtp password يعرض كلمة سر VTP الحالية. عند ضبط VTP password، يجب أن تتطابق كلمة السر على كل المحولات في نفس VTP domain لكي تُقبَل تحديثات VTP. هذا الأمر حاسم لتشخيص سبب عدم مزامنة VTP — إذا كانت كلمات السر مختلفة بين المحولات، تُرفَض تحديثات VTP بصمت. على VTP v3، الكلمة تُخزَّن مشفّرة افتراضيًا وتظهر كـ ****** في المخرجات ما لم تُستخدم صيغة detail.",
+    examples: [
+      {
+        context: "عرض كلمة سر VTP",
+        code: "Switch# show vtp password",
+        output: "VTP Password: CiscoSecret123",
+      },
+      {
+        context: "VTP v3 — عرض الكلمة المشفّرة",
+        code: "Switch# show vtp password",
+        output: "VTP Password: ******\n\nThe VTP password is configured and stored in encrypted format.",
+      },
+    ],
+    verificationCommands: ["show vtp status", "show vtp counters"],
+    troubleshootingNotes: [
+      "إذا لم تُزامَن VTP بين محولين رغم تطابق Domain Name والإصدار، تحقق من تطابق VTP Password على المحولين.",
+    ],
+    commonErrors: [
+      "نسيان ضبط VTP password متطابق على المحولات الجديدة في Domain محمي بكلمة سر.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لإزالة الكلمة: no vtp password.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VTP",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-vtp-status", "cmd-show-vtp-counters", "cmd-vtp"],
+    tags: ["switching", "vlan", "vtp", "verification", "extended"],
+  },
+  {
+    id: "cmd-show-vtp-devices",
+    name: "show vtp devices",
+    aliases: ["sh vtp devices"],
+    syntax: "show vtp devices",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "IOS 12.2(33)SXH+؛ IOS XE كافة (يتطلب VTP v3)",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Switch#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: [],
+    status: "VersionLimited",
+    historicalNote:
+      "show vtp devices متاح فقط على VTP v3. على VTP v1/v2 هذا الأمر غير موجود. VTP v3 أضاف دعمًا لاكتشاف الأجهزة في نفس Domain.",
+    summary:
+      "يعرض قائمة بالأجهزة في نفس VTP domain (VTP v3 فقط). يُستخدم لتدقيق طوبولوجيا VTP في الشبكات الكبيرة.",
+    description:
+      "show vtp devices متاح حصريًا على VTP v3. يعرض كل الأجهزة في نفس VTP domain التي أرسلت إعلانات VTP مؤخرًا، مع عناوينها وحالة كل منها. مفيد لتدقيق طوبولوجيا VTP في الشبكات الكبيرة والتأكد من أن كل المحولات المطلوبة في الـ domain. على VTP v1/v2 هذا الأمر غير مدعوم.",
+    examples: [
+      {
+        context: "عرض أجهزة VTP v3 في الـ domain",
+        code: "Switch# show vtp devices",
+        output:
+          "Retrieving information from the VTP domain, please wait for 5 seconds...\n\nVTP Feature Conf Dc  Revision  Primary  Description\n------------------ --- -  -------- -------  -----------\nVLAN               Yes  No 1         No       ENTERPRISE\nMST                No   -  -         -        -\n\nVTP Device Information\n----------------------\nDevice ID     Address         Config  Revision  Description\n0011.2233.44  10.10.99.10     Server  1         Core-Switch\n0022.3344.55  10.10.99.11     Server  1         Access-Switch-01",
+        outputExplanation:
+          "على VTP v3، يعرض قائمة بأجهزة VTP في الـ domain: Core-Switch على 10.10.99.10 و Access-Switch-01 على 10.10.99.11، كلاهما في وضع Server.",
+      },
+    ],
+    verificationCommands: ["show vtp status"],
+    warnings: [
+      "متاح فقط على VTP v3. على VTP v1/v2 سترى رسالة خطأ.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VTP v3",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-vtp-status", "cmd-show-vtp-counters", "cmd-vtp"],
+    tags: ["switching", "vlan", "vtp", "verification", "v3", "extended"],
+  },
+  {
+    id: "cmd-show-vlan-brief",
+    name: "show vlan brief",
+    aliases: ["sh vlan brief", "sh vl br", "show vlan"],
+    syntax: "show vlan [brief | id <vlan-id> | name <name>]",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض ملخصًا سريعًا لكل VLANs: الاسم، الحالة، والمنافذ المُسنَدة. الكلمة brief تختصر المخرجات. أمر التحقق الأساسي من VLANs.",
+    description:
+      "show vlan brief هو أمر التحقق القياسي من VLANs على المحول. يعرض جدولًا بـ: VLAN ID، VLAN Name، Status (active/suspended)، والمنافذ المُسنَدة. الكلمة brief تُلغي أعمدة إضافية (MTU، SAID، Type) لعرض سريع. الكلمات id <vlan-id> و name <name> تُرشّح لـ VLAN واحدة. هذا الأمر مكمل لـ show vlan (الذي يعرض تفاصيل أكثر) و show interfaces trunk (الذي يعرض VLANs على trunks). على Catalyst 9000، يعرض VLANs من 1 إلى 1005 افتراضيًا؛ VLANs الموسّعة (1006-4094) تُعرض مع show vlan internal أو حسب الإعداد.",
+    parameters: [
+      {
+        name: "brief",
+        description: "تعرض ملخصًا مختصرًا بدون أعمدة MTU/SAID/Type.",
+        required: false,
+      },
+      {
+        name: "id <vlan-id>",
+        description: "تُرشّح لـ VLAN واحدة بالرقم.",
+        required: false,
+      },
+      {
+        name: "name <name>",
+        description: "تُرشّح لـ VLAN واحدة بالاسم.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض ملخص VLANs",
+        code: "Switch# show vlan brief",
+        output:
+          "VLAN Name                             Status    Ports\n---- -------------------------------- --------- -------------------------------\n1    default                          active    Gi1/0/1, Gi1/0/2, Gi1/0/3\n10   Engineering                      active    Gi1/0/10, Gi1/0/11\n20   Sales                            active    Gi1/0/20, Gi1/0/21\n30   Marketing                        active    Gi1/0/30\n99   Management                       active    \n1002 fddi-default                     act/unsup \n1003 token-ring-default              act/unsup \n1004 fddinet-default                  act/unsup \n1005 trnet-default                    act/unsup",
+        outputExplanation:
+          "VLAN 1 (default) نشطة مع المنافذ Gi1/0/1-3. VLAN 10 (Engineering) نشطة مع Gi1/0/10 و Gi1/0/11. VLANs 1002-1005 محجوزة (FDDI/Token Ring) وغير مدعومة (act/unsup). VLAN 99 (Management) نشطة بدون منافذ access — تستخدم فقط عبر trunk أو SVI.",
+      },
+    ],
+    verificationCommands: ["show vlan", "show vlan id 10", "show interfaces trunk", "show vtp status"],
+    troubleshootingNotes: [
+      "إذا كانت VLAN مفقودة من show vlan brief، فهي إما لم تُنشأ (vlan <id>) أو حُذفت بواسطة VTP في وضع client/server.",
+      "إذا كانت VLAN موجودة لكن لا منافذ مُسنَدة إليها، فهي بلا منافذ access وربما تُستخدم فقط عبر trunk أو لـ SVI.",
+    ],
+    commonErrors: [
+      "البحث عن VLAN الموسّعة (1006-4094) في show vlan brief — قد لا تظهر افتراضيًا على بعض المنصات.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VLANs",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-vlan", "cmd-switchport-access-vlan", "cmd-show-vtp-status", "cmd-show-interfaces-trunk"],
+    tags: ["switching", "vlan", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-interfaces-trunk",
+    name: "show interfaces trunk",
+    aliases: ["sh int trunk", "show int trunk"],
+    syntax: "show interfaces trunk",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "VLANs and SVI",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض كل منافذ trunk على المحول مع: VLANs المسموحة، النشطة، والمسموحة على الـ trunk، native VLAN، ووضع التغليف. أمر حاسم لتشخيص مشاكل trunk.",
+    description:
+      "show interfaces trunk يعرض أربعة جداول لكل منفذ trunk: (1) Port / Mode / Encapsulation / Status / Native VLAN — نظرة عامة على المنفذ. (2) VLANs allowed on trunk — VLANs المسموح بها في الإعداد (switchport trunk allowed vlan). (3) VLANs allowed and active in management domain — VLANs المسموح بها AND الموجودة فعليًا على المحول. (4) VLANs in spanning tree forwarding state and not pruned — VLANs التي تُوجَّه فعلًا عبر الـ trunk. الفرق بين الجداول يحل مشاكل trunk: VLAN في الجدول 1 لكن ليست في الجدول 2 = ممنوعة بـ switchport trunk allowed vlan؛ في الجدول 2 لكن ليست في الجدول 3 = غير موجودة على المحول؛ في الجدول 3 لكن ليست في الجدول 4 = pruned أو STP blocked.",
+    examples: [
+      {
+        context: "عرض منافذ trunk",
+        code: "Switch# show interfaces trunk",
+        output:
+          "Port        Mode         Encapsulation  Status       Native vlan\nGi1/0/1     on           dot1q          trunking     99\nGi1/0/2     desirable    n-802.1q       trunking     1\n\nPort        Vlans allowed on trunk\nGi1/0/1     10,20,30,99\nGi1/0/2     1-4094\n\nPort        Vlans allowed and active in management domain\nGi1/0/1     10,20,30,99\nGi1/0/2     1,10,20,30,99\n\nPort        Vlans in spanning tree forwarding state and not pruned\nGi1/0/1     10,20,30,99\nGi1/0/2     1,10,20,30,99",
+        outputExplanation:
+          "Gi1/0/1 في وضع trunk on، dot1q، native VLAN 99، يسمح فقط بـ VLANs 10,20,30,99 — كلها موجودة وكلها في حالة forwarding. Gi1/0/2 في وضع desirable، يسمح بكل VLANs 1-4094 لكن VLAN 99 فقط هي الموجودة فعلًا.",
+      },
+    ],
+    verificationCommands: ["show interfaces switchport", "show vlan brief", "show vtp status"],
+    troubleshootingNotes: [
+      "إذا كانت VLAN مسموح بها على trunk لكن لا تمر حركة، افحص: (1) VLAN موجودة على المحول (show vlan brief)، (2) VLAN ليست pruned، (3) STP ليس في حالة blocking على المنفذ (show spanning-tree vlan <id>).",
+      "اختلاف native VLAN بين الطرفين يسبب تحذير CDP ويسرب حركة غير موسومة بين VLANs — تأكد من التطابق.",
+    ],
+    commonErrors: [
+      "تفسير 'Vlans allowed on trunk' على أنها VLANs النشطة — الجدول الصحيح هو 'Vlans allowed and active in management domain'.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 Layer 2 Configuration Guide — VLAN Trunks",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/vlans.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-switchport-mode-trunk", "cmd-switchport-trunk-allowed-vlan", "cmd-show-vlan-brief", "cmd-show-spanning-tree"],
+    tags: ["switching", "vlan", "trunk", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-spanning-tree",
+    name: "show spanning-tree",
+    aliases: ["sh spanning-tree", "sh sp", "show sp-tree"],
+    syntax: "show spanning-tree [{vlan <vlan-id> | summary | brief | detail | interface <iface> | root | block}]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Spanning Tree Protocol",
+    category: "Switching",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض حالة Spanning Tree لكل VLANs أو لـ VLAN محددة. يشمل: root bridge، cost، port roles (root/designated/alternate)، port states (forwarding/blocking). أمر التحقق الأساسي من STP.",
+    description:
+      "show spanning-tree يعرض حالة STP الكاملة. بدون وسائط، يعرض معلومات لكل VLANs. الكلمة vlan <vlan-id> تُرشّح لـ VLAN واحدة. يعرض لكل VLAN: bridge ID (priority + MAC)، root bridge ID، root path cost، وكل منفذ مع دوره (Desig = designated، Root = root port، Altn = alternate، Back = backup) وحالته (FWD = forwarding، BLK = blocking، LSN = listening، LRN = learning). الكلمة summary تعرض عدد VLANs في كل حالة، و detail تُضيف أعمار root bridge وتكلفة المسارات. الكلمة root تعرض معلومات root bridge فقط، و block تعرض المنافذ المحجوبة فقط — مفيدة لاكتشاف حلقات STP المحتملة.",
+    parameters: [
+      {
+        name: "vlan <vlan-id>",
+        description: "تُرشّح لـ VLAN واحدة.",
+        required: false,
+      },
+      {
+        name: "summary",
+        description: "تعرض ملخصًا بعدد VLANs في كل حالة.",
+        required: false,
+      },
+      {
+        name: "detail",
+        description: "تعرض تفاصيل كاملة ( timers، root age).",
+        required: false,
+      },
+      {
+        name: "interface <iface>",
+        description: "تُرشّح لواجهة محددة.",
+        required: false,
+      },
+      {
+        name: "root",
+        description: "تعرض معلومات root bridge لكل VLANs.",
+        required: false,
+      },
+      {
+        name: "block",
+        description: "تعرض المنافذ المحجوبة فقط — لاكتشاف حلقات STP.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض STP لـ VLAN 10",
+        code: "Switch# show spanning-tree vlan 10",
+        output:
+          "VLAN0010\n  Spanning tree enabled protocol rstp\n  Root ID    Priority    4106\n             Address     0011.2233.4455\n             This bridge is the root\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n\n  Bridge ID  Priority    4106  (priority 4096 sys-id-ext 10)\n             Address     0011.2233.4455\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n             Aging Time  300 sec\n\nInterface           Role Sts Cost      Prio.Nbr Type\n------------------- ---- --- --------- -------- ----\nGi1/0/1             Desg FWD 4         128.1    P2p\nGi1/0/2             Desg FWD 4         128.2    P2p\nGi1/0/10            Desg FWD 4         128.10   P2p Edge",
+        outputExplanation:
+          "VLAN 10 تشغّل RSTP (rstp). هذا المحول هو root bridge للـ VLAN 10 (priority 4106 = 4096 + 10). كل المنافذ في حالة Designated Forwarding (Desg FWD). Gi1/0/10 معلمة كـ Edge (PortFast).",
+      },
+    ],
+    verificationCommands: ["show spanning-tree summary", "show spanning-tree root", "show spanning-tree interface <iface>"],
+    troubleshootingNotes: [
+      "إذا كان المحول غير root رغم أن priority أقل، فالسبب غالبًا اختلاف في bridge priority أو عنوان MAC — راجع show spanning-tree root.",
+      "منفذ في حالة BLK بشكل دائم قد يدل على حلقة STP أو إعداد خاطئ — استخدم show spanning-tree block لرؤية كل المنافذ المحجوبة.",
+      "إذا كانت المنافذ في حالة LSN أو LRN لفترة طويلة، فالجهاز يعيد حساب STP باستمرار — قد يكون unstable link أو BPDU فاسدة.",
+    ],
+    commonErrors: [
+      "نسيان أن bridge priority = base priority + VLAN ID. priority 4096 على VLAN 10 = 4096+10 = 4106.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 STP Configuration Guide — show spanning-tree",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/stp.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-spanning-tree-mode", "cmd-spanning-tree-portfast", "cmd-spanning-tree-bpduguard"],
+    tags: ["switching", "stp", "verification", "troubleshooting", "ccna"],
+  },
+  {
+    id: "cmd-show-etherchannel-summary",
+    name: "show etherchannel summary",
+    aliases: ["sh eth sum", "sh etherchannel summary"],
+    syntax: "show etherchannel summary",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNP-ENCOR",
+    scope: "certification",
+    topic: "EtherChannel / LAG",
+    category: "Switching",
+    curriculumVersions: ["CCNP ENCOR (350-401) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض ملخصًا لكل port-channels على المحول: رقم القناة، البروتوكول (LACP/PAgP)، عدد الأعضاء، وحالة كل عضو (P = bundled, H = hot-standby, I = standalone, s = suspended).",
+    description:
+      "show etherchannel summary هو أمر التحقق الأساسي من EtherChannel. يعرض جدولًا مختصرًا لكل port-channel مع: Group number، Protocol (LACP/PAgP/-)، عدد المنافذ المجمّعة. الحقول بعد أسماء المنافذ: **P** = bundled in port-channel (مُجمَّع ومُفعّل)، **H** = hot-standby (LACP احتياطي)، **I** = standalone (لا ينتمي لقناة)، **s** = suspended (موقوف بسبب إعداد غير متطابق)، **S** = Layer 2 channel، **R** = Layer 3 channel. الرمز * قبل اسم port-channel يدل على أنه مُفعّل. الأمر مكمل لـ show interfaces port-channel <n> الذي يعرض تفاصيل أكثر.",
+    examples: [
+      {
+        context: "عرض ملخص EtherChannel",
+        code: "Switch# show etherchannel summary",
+        output:
+          "Flags:  D - down        P - bundled in port-channel\n        I - stand-alone s - suspended\n        H - hot-standby (LACP only)\n        R - Layer3      S - Layer2\n        U - in use      N - not in use, no aggregation\n        f - failed to allocate aggregator\n\n        M - not in use, no aggregation\n        c - not in use, min-links not met\n\nGroup  Port-channel  Protocol    Ports\n------+-------------+-----------+-----------------------------------------------\n1      Po1(SU)         LACP      Gi1/0/1(P)  Gi1/0/2(P)\n2      Po2(SU)         LACP      Gi1/0/3(P)  Gi1/0/4(s)\n3      Po3(SD)         -         Gi1/0/5(I)  Gi1/0/6(I)",
+        outputExplanation:
+          "Po1: Layer 2 (S)، مُفعّل (U)، LACP، المنفذان Gi1/0/1 و Gi1/0/2 كلاهما مُجمَّع (P). Po2: Layer 2 مُفعّل، LACP، Gi1/0/3 مُجمَّع، Gi1/0/4 موقوف (s = suspended — إعداد غير متطابق). Po3: Layer 2 لكن down (D)، لا بروتوكول، المنفذان standalone (I).",
+      },
+    ],
+    verificationCommands: ["show etherchannel 1 port-channel", "show interfaces port-channel 1"],
+    troubleshootingNotes: [
+      "منفذ بحالة s (suspended) يعني أن إعداد المنفذ لا يطابق بقية أعضاء القناة — تحقق من: السرعة، duplex، VLAN، إعداد trunk، STP settings.",
+      "منفذ بحالة I (standalone) يعني أنه لا ينتمي لأي قناة — تحقق من channel-group <n> mode على الواجهة.",
+      "Po(SD) = port-channel Layer 2 لكن down — لا أعضاء مُجمَّعين. تحقق من تفعيل المنافذ (no shutdown) وتطابق الإعداد.",
+    ],
+    commonErrors: [
+      "تفسير s (suspended) على أنه hot-standby — s يعني موقوف بسبب إعداد غير متطابق، H فقط يعني hot-standby.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Catalyst 9300 EtherChannel Configuration Guide",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/configuration_guide/l2/b_1712_l2_9300_9300l/ethernet_ch.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-channel-group", "cmd-interface-port-channel"],
+    tags: ["switching", "etherchannel", "lacp", "verification", "encor"],
+  },
+  {
+    id: "cmd-show-ip-eigrp-neighbors",
+    name: "show ip eigrp neighbors",
+    aliases: ["sh ip eigrp neigh", "show ip eigrp neigh"],
+    syntax: "show ip eigrp neighbors [{detail | <interface> | <ip>}]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "EIGRP",
+    category: "Routing",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض جيران EIGRP مع عنوانهم، الواجهة، hold time، uptime، وعدّاد SRTT/RTO. أمر التحقق القياسي من تجاور EIGRP.",
+    description:
+      "show ip eigrp neighbors يعرض جدول الجيران لـ EIGRP IPv4. كل سطر: H (ترتيب التعلم)، Address (IP الجار)، Interface (الواجهة المحلية)، Hold (عدّان hold time بالثواني — عند 0 يُفقد التجاور)، Uptime (مدة التجاور)، SRTT (Smooth Round-Trip Time)، RTO (Retransmission Timeout)، Q Cnt (عدد الحزم في قائمة الانتظار — يجب أن يكون 0 في الحالة المستقرة)، Seq Num (رقم تسلسل آخر حزمة). الكلمة detail تُضيف معلومات عن retransmissions و retransmission timeout. Q Cnt > 0 يدل على مشكلة — الجار لا يُؤكد استلام الحزم.",
+    parameters: [
+      {
+        name: "detail",
+        description: "تعرض معلومات إضافية عن retransmissions و retransmission timeout.",
+        required: false,
+      },
+      {
+        name: "<interface>",
+        description: "تُرشّح لواجهة محددة.",
+        required: false,
+      },
+      {
+        name: "<ip>",
+        description: "تُرشّح لعنوان جار محدد.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض جيران EIGRP",
+        code: "Router# show ip eigrp neighbors",
+        output:
+          "EIGRP-IPv4 Neighbors for AS(100)\nH   Address                 Interface       Hold Uptime   SRTT   RTO  Q  Seq\n                                            (sec)         (ms)       Cnt Num\n0   10.0.0.2                Gi0/0/0          12  00:15:42  12    200  0  5\n1   10.0.1.2                Gi0/0/1          14  00:08:30  8     200  0  3",
+        outputExplanation:
+          "جاران 10.0.0.2 (عبر Gi0/0/0) و 10.0.1.2 (عبر Gi0/0/1). كلاهما مستقر (Hold 12-14 ثانية، Q Cnt = 0). الجار الأول معروف منذ 15 دقيقة، الثاني منذ 8 دقائق.",
+      },
+    ],
+    verificationCommands: ["show ip eigrp topology", "show ip route eigrp", "show ip protocols"],
+    troubleshootingNotes: [
+      "إذا كان Q Cnt > 0 لفترة طويلة، فالجار لا يُؤكد استلام الحزم — راجع إعدادات EIGRP واتصالية Layer 2.",
+      "إذا انخفض Hold إلى 0، يُفقد التجاور — عادةً بسبب ازدحام أو فقد حزم EIGRP (البروتوكول 88).",
+    ],
+    commonErrors: [
+      "نسيان أن رقم AS يجب أن يتطابق بين الجيران — إذا اختلف، لا يتشكل التجاور ولن يظهر الجار في show ip eigrp neighbors.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS IP Routing: EIGRP Command Reference — show ip eigrp neighbors",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/iproute_eigrp/command/ire-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-router-eigrp", "cmd-show-ip-eigrp-topology"],
+    tags: ["routing", "eigrp", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-access-lists",
+    name: "show access-lists",
+    aliases: ["sh access-lists", "sh acl", "show ip access-lists"],
+    syntax: "show access-lists [<name-or-number>] [hardware {detail | count}]",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Access Control",
+    category: "Security",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض كل ACLs المُعدّة على الجهاز مع قواعدها وعدّادات الضغط لكل قاعدة. أمر التحقق الأساسي من ACLs.",
+    description:
+      "show access-lists يعرض كل ACLs (القياسية 1-99، الموسّعة 100-199، والمسمّاة). لكل ACL يعرض كل قاعدة مع رقمها التسلسلي وعدّاد الضربات (matches). العدّادات حاسمة للتشخيص — إذا كانت قاعدة permit بـ 0 ضربات، فالحركة لا تطابق هذه القاعدة. الكلمة hardware تُعرض عدّادات ACL على مستوى العتاد (TCAM) — مفيدة على محولات Catalyst للتأكد من تطبيق ACL في العتاد. لرؤية ACLs المطبّقة على واجهات، استخدم show ip interface. لرؤية ACLs فقط لاكتشاف البوابة (CCNA v2 الحديث)، استخدم show ip access-lists. لمسح العدّادات: clear access-list counters.",
+    parameters: [
+      {
+        name: "<name-or-number>",
+        description: "تُرشّح لـ ACL محدد بالاسم أو الرقم.",
+        required: false,
+      },
+      {
+        name: "hardware",
+        description: "تعرض عدّادات ACL على مستوى العتاد (TCAM).",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض كل ACLs",
+        code: "Router# show access-lists",
+        output:
+          "Standard IP access list 10\n    10 permit 10.10.99.0, wildcard bits 0.0.0.255 (45 matches)\n    20 deny   any log (12 matches)\n\nExtended IP access list ACL-SSH-IN\n    10 permit tcp 10.10.99.0 0.0.0.255 any eq 22 (156 matches)\n    20 deny   tcp any any eq 22 log (8 matches)\n    30 permit ip any any (12453 matches)",
+        outputExplanation:
+          "ACL قياسي رقم 10: قاعدة 10 سمحت بـ 10.10.99.0/24 (45 ضربة)، قاعدة 20 رفضت البقية (12 ضربة). ACL موسّع مسمّى ACL-SSH-IN: قاعدة 10 سمحت بـ SSH من 10.10.99.0/24 (156 ضربة)، قاعدة 20 رفضت بقية SSH (8 ضربات)، قاعدة 30 سمحت بكل شيء آخر (12453 ضربة).",
+      },
+    ],
+    verificationCommands: ["show ip access-lists", "show ip interface <iface>", "clear access-list counters"],
+    troubleshootingNotes: [
+      "إذا كانت قاعدة permit بـ 0 ضربات، فالحركة لا تطابقها — راجع: (1) عنوان المصدر/الوجهة، (2) رقم المنفذ، (3) البروتوكول، (4) ترتيب القواعد (القواعد السابقة قد تلتقط الحركة أولًا).",
+      "إذا كانت ACL لا تمنع الحركة المتوقعة، تحقق أنها مطبّقة على الواجهة الصحيحة وفي الاتجاه الصحيح — show ip interface <iface>.",
+    ],
+    commonErrors: [
+      "نسيان أن ACL تُقيَّم من الأعلى للأسفل وأول تطابق يفوز — قاعدة في نهاية ACL قد لا تُرى أبدًا.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح العدّادات: clear access-list counters.",
+    references: [
+      {
+        label: "Cisco IOS Security Command Reference — show access-lists",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/sec_data_acl/command/sec-data-acl-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-access-list-extended", "cmd-ip-access-list-extended", "cmd-ip-access-group"],
+    tags: ["security", "acl", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-ip-nat-translations",
+    name: "show ip nat translations",
+    aliases: ["sh ip nat trans", "show ip nat translations"],
+    syntax: "show ip nat translations [{verbose | tcp | udp | <local-ip>}]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "NAT",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض جدول ترجمات NAT النشط: العناوين inside local/global، outside local/global، وبروتوكول/منفذ. أمر التحقق الأساسي من عمل NAT.",
+    description:
+      "show ip nat translations يعرض كل الترجمات النشطة في جدول NAT. لكل ترجمة: Pro (البروتوكول TCP/UDP/icmp)، Inside global (IP الخارجي بعد الترجمة)، Inside local (IP الداخلي قبل الترجمة)، Outside local (IP الوجهة كما يراه المضيف الداخلي — عادةً = Outside global)، Outside global (IP الوجهة الحقيقي). الترجمات الثابتة (static NAT) تظهر بـ * في الإخراج. الترجمات الديناميكية (PAT) لها منافذ محولة. الأمر verbose يُضيف مدة الترجمة وآخر استخدام. لتنظيف الترجمات: clear ip nat translation *.",
+    parameters: [
+      {
+        name: "verbose",
+        description: "تُضيف مدة الترجمة وآخر استخدام.",
+        required: false,
+      },
+      {
+        name: "tcp | udp",
+        description: "تُرشّح لبروتوكول محدد.",
+        required: false,
+      },
+      {
+        name: "<local-ip>",
+        description: "تُرشّح لعنوان inside local محدد.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض ترجمات NAT",
+        code: "Router# show ip nat translations",
+        output:
+          "Pro Inside global      Inside local       Outside local      Outside global\ntcp 203.0.113.1:33456  10.10.10.50:33456  93.184.216.34:443  93.184.216.34:443\ntcp 203.0.113.1:33457  10.10.10.51:33457  93.184.216.34:80   93.184.216.34:80\n--- 203.0.113.10       10.10.10.10        ---                ---",
+        outputExplanation:
+          "ترجمتان ديناميكيتان (PAT): المضيف 10.10.10.50 يصل 93.184.216.34:443 عبر 203.0.113.1:33456. المضيف 10.10.10.51 يصل 93.184.216.34:80 عبر 203.0.113.1:33457. ترجمة ثابتة (--- تدل على static): 10.10.10.10 مُعرَّضة دائمًا كـ 203.0.113.10.",
+      },
+    ],
+    verificationCommands: ["show ip nat statistics", "show ip nat translations verbose", "clear ip nat translation *"],
+    troubleshootingNotes: [
+      "إذا لم تظهر ترجمات رغم أن المضيفين يحاولون الوصول للإنترنت، تحقق من: (1) ip nat inside/outside على الواجهات الصحيحة، (2) ACL المُشار إليها في ip nat inside source list، (3) المسار الافتراضي للإنترنت.",
+      "ترجمات تتجمد ولا تُحذف بعد انتهاء الاتصال: استخدم clear ip nat translation * لإجبار الحذف.",
+    ],
+    commonErrors: [
+      "نسيان clear ip nat translation * بعد تغيير إعداد NAT — الترجمات القديمة تبقى وتسبب سلوكًا غير متوقع.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح الترجمات: clear ip nat translation *.",
+    references: [
+      {
+        label: "Cisco IOS IP Addressing: NAT Command Reference — show ip nat translations",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/ipaddr_nat/command/nat-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-ip-nat-inside-source", "cmd-ip-nat-inside", "cmd-ip-nat-outside"],
+    tags: ["nat", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-ip-dhcp-binding",
+    name: "show ip dhcp binding",
+    aliases: ["sh ip dhcp binding", "show dhcp binding"],
+    syntax: "show ip dhcp binding [<ip>]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "DHCP",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض روابط DHCP الحالية: عنوان IP المُخصَّص، عنوان MAC للمضيف، مدة الـ lease، وانتهاء الصلاحية. أمر التحقق الأساسي من عمل خادم DHCP.",
+    description:
+      "show ip dhcp binding يعرض جدول كل عناوين IP المُخصَّصة حاليًا من خادم DHCP المحلي. لكل رابط: IP address (العنوان المُخصَّص)، Hardware address (MAC المضيف بصيغة 01xx.xxxx.xxxx.xxxx حيث 01 = Ethernet)، Lease expiration (وقت انتهاء الـ lease أو Infinite للروابط الثابتة)، Type (Automatic = من pool، Manual = من host reservation). الأمر حاسم لتشخيص: (1) استنفاد pool (لا روابط جديدة)، (2) تخصيص عناوين خاطئة، (3) تعارض العناوين. لرؤية إحصاءات: show ip dhcp server statistics. لمسح رابط: clear ip dhcp binding <ip>.",
+    parameters: [
+      {
+        name: "<ip>",
+        description: "تُرشّح لعنوان IP محدد.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض روابط DHCP",
+        code: "Router# show ip dhcp binding",
+        output:
+          "IP address       Client-ID/              Lease expiration        Type\n                 Hardware address/\n                 User name\n10.10.10.11      0180.0f5e.a0c1.00       Oct 30 2026 02:30 PM    Automatic\n10.10.10.12      01ab.cdef.0123.45       Oct 30 2026 03:15 AM    Automatic\n10.10.10.50      015c.f8xx.xxxx.xx       Infinite                Manual",
+        outputExplanation:
+          "ثلاثة روابط نشطة: 10.10.10.11 و 10.10.10.12 تلقائية (تنتهي غدًا)، 10.10.10.50 يدوية (Infinite = reservation ثابت). العناوين 01... تدل على Ethernet.",
+      },
+    ],
+    verificationCommands: ["show ip dhcp pool", "show ip dhcp server statistics", "show ip dhcp conflict"],
+    troubleshootingNotes: [
+      "إذا كانت روابط كثيرة ثم توقفت فجأة، فالـ pool ربما استُنفد. افحص show ip dhcp pool لرؤية نسبة الاستخدام.",
+      "إذا ظهر تعارض (conflict)، استخدم show ip dhcp conflict ثم clear ip dhcp conflict *.",
+    ],
+    commonErrors: [
+      "نسيان ip dhcp excluded-address لعنوان البوابة فيُعطي الخادم العنوان لعميل فيتعارض مع البوابة.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح رابط: clear ip dhcp binding <ip>.",
+    references: [
+      {
+        label: "Cisco IOS IP Addressing: DHCP Command Reference — show ip dhcp binding",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/ipaddr_dhcp/command/dhcp-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-ip-dhcp-pool", "cmd-ip-dhcp-excluded-address", "cmd-ip-helper-address"],
+    tags: ["dhcp", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-lldp-neighbors",
+    name: "show lldp neighbors",
+    aliases: ["sh lldp nei", "sh lldp neighbors"],
+    syntax: "show lldp neighbors [{detail | interface <iface>}]",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "IOS 15.0+؛ IOS XE كافة؛ NX-OS كافة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Discovery",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض جيران LLDP (Link Layer Discovery Protocol — IEEE 802.1AB، محايد للبائعين) على كل واجهة. الكلمة detail تُضيف إصدار البرنامج وعناوين IP.",
+    description:
+      "show lldp neighbors يعرض جدول جيران LLDP المتصلين مباشرة. لكل جار: Device ID (اسم الجهاز)، Local Intf (الواجهة المحلية)، Hold-time (عدّاد النزول بالثواني — افتراضيًا 120)، Capability (R=router، S=switch، B=bridge، W=WLAN AP، C=DOCSIS، O=other)، Port ID (اسم المنفذ على الجار). الكلمة detail تُضيف: System Name، System Description، إصدار البرنامج، عناوين IP (IPv4 و IPv6)، Port Description، Management Address. LLDP مكمل لـ CDP — يعمل مع الأجهزة غير Cisco. LLDP مطلوب في البيئات متعددة البائعين.",
+    parameters: [
+      {
+        name: "detail",
+        description: "تعرض تفاصيل كاملة لكل جار (System Name، إصدار البرنامج، عناوين IP).",
+        required: false,
+      },
+      {
+        name: "interface <iface>",
+        description: "تُرشّح لواجهة محلية محددة.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض جيران LLDP",
+        code: "Switch# show lldp neighbors",
+        output:
+          "Capability codes:\n    (R) Router, (B) Bridge, (T) Telephone, (C) DOCSIS Cable Device\n    (W) WLAN Access Point, (P) Repeater, (S) Station, (O) Other\n\nDevice ID           Local Intf      Hold-time  Capability      Port ID\nCore-Switch-01      Gi1/0/1         120        R,B             HundredGigE1/0/2\nAccess-Sw-05        Gi1/0/2         118        R,B             Gi1/0/24\nAP-Floor-3          Gi1/0/10        105        W               GigabitEthernet0\n\nTotal entries displayed: 3",
+        outputExplanation:
+          "ثلاثة جيران LLDP: Core-Switch-01 (router+bridge) على Gi1/0/1، Access-Sw-05 على Gi1/0/2، AP-Floor-3 (WLAN AP) على Gi1/0/10. كل الجيران في نطاق hold-time 120 ثانية.",
+      },
+    ],
+    verificationCommands: ["show lldp neighbors detail", "show lldp interface", "show cdp neighbors"],
+    troubleshootingNotes: [
+      "إذا لم يظهر جار متوقع، تحقق من: (1) LLDP مُفعّل عالميًا (lldp run)، (2) LLDP مُفعّل على الواجهة (no lldp transmit/no lldp receive قد تكون معطّلة).",
+      "إذا كان CDP يظهر جارًا لكن LLDP لا، فالجار غير Cisco أو LLDP معطل على الجار.",
+    ],
+    commonErrors: [
+      "نسيان lldp run — على بعض المنصات يجب تفعيل LLDP عالميًا قبل أن يعمل على الواجهات.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS LLDP Command Reference — show lldp neighbors",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/cdp/command/cdp-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-lldp-run", "cmd-show-cdp-neighbors", "cmd-cdp-run"],
+    tags: ["discovery", "lldp", "verification", "ccna"],
+  },
+  {
+    id: "cmd-show-logging",
+    name: "show logging",
+    aliases: ["sh logging", "sh log"],
+    syntax: "show logging [{history | trap | <severity> | count | last <count>}]",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNA",
+    scope: "certification",
+    topic: "Time & Logging",
+    category: "Services",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض سجل syslog الكامل: إعدادات logging (console/monitor/buffer/trap)، ثم آخر الرسائل المُخزَّنة في الـ buffer. أمر التحقق الأساسي من سجل النظام.",
+    description:
+      "show logging يعرض قسمين رئيسيين: (1) إعدادات logging الحالية (Syslog Logging: Enabled/Disabled، Console Logging، Monitor Logging، Buffer Logging، Trap Logging، Logging Source-Interface، Logging Hosts). (2) سجل الرسائل في الـ buffer، مرتبة زمنيًا. كل رسالة تبدأ بطابع زمني (إذا فُعّل service timestamps log datetime)، ثم مستوى الخطورة (%SEC-6-IPACCESSLOGP، %LINK-3-UPDOWN، إلخ)، ثم نص الرسالة. الكلمة history تعرض سجل SNMP history table، trap تعرض إعدادات traps، count تعرض عدّادات كل رسالة، last <n> تعرض آخر N رسالة فقط. حجم الـ buffer الافتراضي 8192 بايت؛ اضبطه بـ logging buffered <size> <severity>.",
+    parameters: [
+      {
+        name: "history",
+        description: "تعرض SNMP history table.",
+        required: false,
+      },
+      {
+        name: "trap",
+        description: "تعرض إعدادات traps فقط.",
+        required: false,
+      },
+      {
+        name: "count",
+        description: "تعرض عدّادات كل رسالة.",
+        required: false,
+      },
+      {
+        name: "last <count>",
+        description: "تعرض آخر N رسالة فقط.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض سجل syslog",
+        code: "Router# show logging",
+        output:
+          "Syslog logging: enabled (0 messages dropped, 0 messages rate-limited,\n                0 flushes, 0 overruns, xml disabled, epf disabled)\n    Console logging: level debugging, 1247 messages logged\n    Monitor logging: level debugging, 0 messages logged\n    Buffer logging:  level debugging, 1247 messages logged, logging to internal buffer\n    Trap logging:    level informational, 1245 message lines logged\n        Logging to 10.10.99.30 (udp port 514, audit disabled, link up)\n    Logging Source-Interface: Vlan99\n\nLog Buffer (8192 bytes):\n\n*Oct 29 14:32:18.521: %SYS-5-CONFIG_I: Configured from console by admin on console\n*Oct 29 14:33:02.123: %LINK-3-UPDOWN: Interface GigabitEthernet0/0/0, changed state to down\n*Oct 29 14:33:04.456: %LINK-3-UPDOWN: Interface GigabitEthernet0/0/0, changed state to up",
+        outputExplanation:
+          "logging مُفعّل على كل الأهداف (console, monitor, buffer, trap). الـ trap يُرسل إلى 10.10.99.30 على UDP 514. آخر 3 رسائل: تغيير إعداد من console، تعطل ثم تفعيل Gi0/0/0. الطوابع الزمنية بصيغة التاريخ والوقت الكامل.",
+      },
+    ],
+    verificationCommands: ["show logging history", "show logging trap", "clear logging"],
+    troubleshootingNotes: [
+      "إذا كانت الرسائل بلا طوابع زمنية، فعّل service timestamps log datetime localtime show-timezone.",
+      "إذا لم تصل الرسائل إلى خادم syslog البعيد، تحقق: (1) logging host مُعدّ، (2) logging trap informational أو أعلى، (3) المسار إلى الخادم، (4) ACLs على المنفذ 514 UDP.",
+    ],
+    commonErrors: [
+      "نسيان logging trap informational — افتراضيًا informational لكن إن ضبطت أخفض (مثل emergencies) لن تصل رسائل التحذير.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح الـ buffer: clear logging.",
+    references: [
+      {
+        label: "Cisco IOS Network Management Command Reference — show logging",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-logging-host", "cmd-ntp-server", "cmd-clock-timezone"],
+    tags: ["syslog", "logging", "verification", "troubleshooting", "ccna"],
+  },
+  {
+    id: "cmd-show-processes-cpu",
+    name: "show processes cpu",
+    aliases: ["sh proc cpu", "sh processes cpu"],
+    syntax: "show processes cpu [{sorted | history | detailed}]",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "Diagnostics",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENARSI (300-410) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض استهلاك CPU لكل عملية في آخر 5 ثوانٍ و60 ثانية و5 دقائق. الكلمة sorted تُرتّب العمليات حسب الاستهلاك. أمر حاسم لتشخيص CPU العالي.",
+    description:
+      "show processes cpu يعرض استهلاك CPU مفصلًا. السطر الأول: نسبة استخدام CPU في آخر 5 ثوانٍ (one-second)، متوسط 60 ثانية، ومتوسط 5 دقائق. ثم جدول لكل عملية: PID، Runtime (إجمالي الوقت المستهلك بالثواني)، Invoked (عدد مرات الاستدعاء)، uSecs (متوسط الوقت لكل استدعاء)، 5Sec (نسبة في آخر 5 ثوانٍ)، 1Min (متوسط دقيقة)، 5Min (متوسط 5 دقائق)، Process name. الكلمة sorted تُرتّب حسب 5Sec تنازليًا — مفيدة لإيجاد العملية الأكثر استهلاكًا. الكلمة history تُظهر رسمًا نصيًا لاستهلاك CPU عبر الوقت. على IOS XE، استخدم show platform software status control-processor brief لرؤية CPU لكل IOSd و core. CPU > 70% لفترة طويلة يدل على مشكلة (هجمات، ACL ضخم، switching برمجي).",
+    parameters: [
+      {
+        name: "sorted",
+        description: "تُرتّب العمليات حسب الاستهلاك في آخر 5 ثوانٍ (تنازليًا).",
+        required: false,
+      },
+      {
+        name: "history",
+        description: "تعرض رسمًا نصيًا لاستهلاك CPU عبر الوقت.",
+        required: false,
+      },
+      {
+        name: "detailed",
+        description: "تعرض معلومات تفصيلية إضافية لكل عملية.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض أعلى العمليات استهلاكًا",
+        code: "Router# show processes cpu sorted",
+        output:
+          "CPU utilization for five seconds: 4%/0%; one minute: 6%; five minutes: 5%\nPID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process\n3   18456         2345678        7         2.00%  1.50%  1.20%  0   IOSD ipc task\n17  12345         1567890        7         1.00%  0.50%  0.30%  0   ARP Input\n42  8923           456789        19        0.50%  0.20%  0.10%  0   IP Input\n55  4567           234567        19        0.20%  0.10%  0.05%  0   HSRP IPv4",
+        outputExplanation:
+          "CPU 4% في آخر 5 ثوانٍ، 6% في آخر دقيقة، 5% في آخر 5 دقائق — طبيعي. أعلى العمليات: IOSD ipc task (2%)، ARP Input (1%)، IP Input (0.5%). كل القيم منخفضة وسليمة.",
+      },
+    ],
+    verificationCommands: ["show processes cpu sorted", "show processes cpu history", "show platform software status control-processor brief"],
+    troubleshootingNotes: [
+      "CPU > 70% لفترة طويلة يدل على مشكلة: (1) ACL ضخم على واجهة مشغولة — ينتقل التحويل لبرمجي، (2) هجوم ARP/DHCP starvation، (3) عملية debug تركت مفعّلة عن طريق الخطأ، (4) bug في IOS. ابدأ بـ show processes cpu sorted لإيجاد العملية المُذنبة.",
+      "على Catalyst 9000 (IOS XE)، استخدم show platform software status control-processor brief لرؤية CPU لكل core و IOSd — هذا أدق من show processes cpu.",
+    ],
+    commonErrors: [
+      "تفسير ارتفاع CPU عابر (spike لثانية) على أنه مشكلة — راجع متوسطات 1Min و 5Min للحالة المستقرة.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Process Management Command Reference — show processes cpu",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-debugging", "cmd-debug"],
+    tags: ["diagnostics", "cpu", "performance", "verification", "enarsi"],
+  },
+  {
+    id: "cmd-show-memory",
+    name: "show memory",
+    aliases: ["sh memory", "sh mem"],
+    syntax: "show memory [{statistics | summary | detail | <process-name>}]",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "Diagnostics",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENARSI (300-410) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض إحصاءات ذاكرة الجهاز: الذاكرة الكلية، المستخدمة، الحرة، وأعلى العمليات استهلاكًا. حاسم لتشخيص memory leaks و OOM crashes.",
+    description:
+      "show memory يعرض ملخص ذاكرة الجهاز. السطر الأول: Head (بداية الذاكرة)، Total (الإجمالي)، Used (المستخدم)، Free (الحرة)، Lowest (أدنى مستوى حر وصلت إليه الذاكرة منذ الإقلاع). ثم جدول لكل عملية: PID، TTY، Allocated (المخصصة)، Freed (المحررة)، Holding (الممسوكة حاليًا)، Getbufs، Retbufs، Process. الكلمة statistics تعرض ملخصًا فقط (أسرع)، summary تعرض العمليات بحجم الـ holding، detail تعرض كل كتلة ذاكرة (مخرجات ضخمة). هبوط Lowest إلى ما دون 10% من Total يدل على memory leak — ابحث عن عملية بـ Holding متزايد بلا تحرير. على IOS XE، استخدم show platform software status control-processor brief لرؤية ذاكرة كل core.",
+    parameters: [
+      {
+        name: "statistics",
+        description: "تعرض ملخصًا فقط (أسرع).",
+        required: false,
+      },
+      {
+        name: "summary",
+        description: "تعرض العمليات بحجم الـ holding.",
+        required: false,
+      },
+      {
+        name: "detail",
+        description: "تعرض كل كتلة ذاكرة — مخرجات ضخمة، استخدم بحذر.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض ملخص الذاكرة",
+        code: "Router# show memory statistics",
+        output:
+          "                Head    Total       Used       Free       Lowest      Largest\nProcessor   12AB4CD0  2097152    892345     1204807    1184523     1156234\n          I/O    34000000   4194304    145678     4048626    4023456     4012456\n\n                Total     Used       Free       Lowest      Largest\n                6291456   1038023    5253433    5207979     5168690",
+        outputExplanation:
+          "ذاكرة Processor: 2MB إجمالي، 0.9MB مستخدم، 1.2MB حر، Lowest 1.18MB (لم تنخفض أبدًا لمستوى خطير). ذاكرة I/O: 4MB إجمالي، 0.15MB مستخدم، 4MB حر. كل المؤشرات سليمة.",
+      },
+    ],
+    verificationCommands: ["show memory summary", "show memory statistics", "show platform software status control-processor brief"],
+    troubleshootingNotes: [
+      "إذا انخفض Lowest كثيرًا عن Free الحالي، فالجهاز عانى من ضغط ذاكرة في الماضي — ابحث عن memory leak.",
+      "إذا كان Holding لعملية متزايدًا بلا تحرير عبر إعادة التشغيل، فهذا memory leak — افتح حالة TAC مع Cisco.",
+    ],
+    commonErrors: [
+      "تفسير Used العالي على أنه مشكلة — Used العالي طبيعي إذا كان Lowest ما زال مرتفعًا (الجهاز يستغل الذاكرة لكن لم يستنفدها).",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Process Management Command Reference — show memory",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/bsm/command/bsm-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-processes-cpu", "cmd-show-version"],
+    tags: ["diagnostics", "memory", "performance", "verification", "enarsi"],
+  },
+  {
+    id: "cmd-show-users",
+    name: "show users",
+    aliases: ["sh users", "sh user"],
+    syntax: "show users [{all | count}]",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Router#",
+    certLevel: "Fundamentals",
+    scope: "certification",
+    topic: "System Inspection",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNA v1.0 (200-120)", "CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض كل المستخدمين المتصلين حاليًا بالجهاز: console، SSH، Telnet، VTY، مع عنوانهم ومتى سجّلوا الدخول. أمر التحقق من الجلسات النشطة.",
+    description:
+      "show users يعرض كل الجلسات النشطة على الجهاز. لكل جلسة: Line (اسم الخط — con للـ console، vty للـ VTY، aux للـ auxiliary)، User (اسم المستخدم أو فارغ)، Host(s) (IP المصدر للجلسة البعيدة)، Idle (مدة الخمول)، Location. العلامة * قبل سطر تشير إلى جلستك الحالية. الكلمة all تُضمّن الجلسات غير النشطة، count تعرض عدد المستخدمين فقط. الأمر مفيد: (1) لمعرفة من متصل قبل إعادة التشغيل (reload in لتجنب إزعاجهم)، (2) لرصد جلسات SSH غير المصرّح بها، (3) لإيجاد جلسات عالقة (Idle كبير). لإزالة جلسة من شخص آخر: clear line <number>.",
+    parameters: [
+      {
+        name: "all",
+        description: "تُضمّن الجلسات غير النشطة.",
+        required: false,
+      },
+      {
+        name: "count",
+        description: "تعرض عدد المستخدمين فقط.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض المستخدمين المتصلين",
+        code: "Router# show users",
+        output:
+          "    Line       User       Host(s)              Idle       Location\n   0 con 0     admin      idle                 00:00:00 \n*  1 vty 0     netadmin   idle                 00:00:00 10.10.99.50\n    2 vty 1     noc        idle                 00:15:23 10.10.99.51\n  Interface    User               Mode         Idle     Peer Address",
+        outputExplanation:
+          "ثلاثة مستخدمين متصلون: admin على console (Line 0)، netadmin عبر SSH من 10.10.99.50 (العلامة * = جلستك الحالية)، noc عبر SSH من 10.10.99.51 (خامل منذ 15 دقيقة — ربما جلسة منسية).",
+      },
+    ],
+    verificationCommands: ["show users all", "show ssh", "clear line <number>"],
+    troubleshootingNotes: [
+      "جلسة بـ Idle كبير ربما تكون منسية — استخدم clear line <number> لإزالتها لتحرير خط VTY.",
+      "إذا رأيت جلسة SSH من IP غير معروف، ابحث فورًا — قد تكون محاولة اختراق.",
+    ],
+    commonErrors: [
+      "نسيان أن العلامة * تشير لجلستك أنت — لا تحذفها بالخطأ بـ clear line.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Terminal Services Command Reference — show users",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/terminal/command/terminal-services-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-line-vty", "cmd-aaa-new-model", "cmd-show-privilege"],
+    tags: ["inspection", "users", "verification", "fundamentals"],
+  },
+  {
+    id: "cmd-show-privilege",
+    name: "show privilege",
+    aliases: ["sh priv", "show priv"],
+    syntax: "show privilege",
+    platforms: ["IOS", "IosXe", "NxOs"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC", "User EXEC"],
+    promptShape: "Router#",
+    certLevel: "Fundamentals",
+    scope: "certification",
+    topic: "System Inspection",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNA v2.0 (200-301)"],
+    status: "Current",
+    summary:
+      "يعرض مستوى الصلاحية الحالي للمستخدم (0-15). 0 = منخفض، 1 = User EXEC، 15 = Privileged EXEC الكامل. أمر التحقق من الصلاحيات بعد تسجيل الدخول.",
+    description:
+      "show privilege يعرض مستوى الصلاحية الحالي للمستخدم على سطر واحد. المستويات: 0 = منخفض جدًا (محدود جدًا)، 1 = User EXEC افتراضي (أوامر show محدودة)، 2-14 = مستويات مخصصة (يمكن تعريفها بـ privilege <level>), 15 = Privileged EXEC الكامل (كل الأوامر). مع AAA و TACACS+، يمكن تعيين مستوى صلاحية لكل مستخدم. بعد تسجيل الدخول، شغّل show privilege للتأكد أنك حصلت على المستوى المتوقع — إذا حصلت على مستوى أقل من المتوقع، فملف TACACS+ أو الإعداد المحلي خطأ.",
+    examples: [
+      {
+        context: "عرض المستوى الحالي",
+        code: "Router# show privilege",
+        output: "Current privilege level is 15",
+      },
+      {
+        context: "مستوى أقل بعد تسجيل الدخول بـ AAA",
+        code: "Router> show privilege\nCurrent privilege level is 5",
+        outputExplanation:
+          "المستخدم حصل على المستوى 5 (مخصص) — ربما ملف TACACS+ يقيّده. لتصعيد لـ 15: enable 15.",
+      },
+    ],
+    verificationCommands: ["enable", "enable <level>", "show running-config | include privilege"],
+    troubleshootingNotes: [
+      "إذا حصلت على مستوى أقل من المتوقع بعد تسجيل الدخول بـ AAA، فملف TACACS+ على الخادم يقيّد المستخدم. تحقق من إعداد المستخدم على خادم TACACS+.",
+    ],
+    commonErrors: [
+      "الخلط بين المستوى 1 (User EXEC) و 15 (Privileged EXEC) — المستوى 1 لا يسمح بأوامر show الحساسة.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Security Command Reference — show privilege",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/security/s1/sec-s1-cr-book/sec-s1-cr-book_chapter3.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-enable", "cmd-aaa-new-model", "cmd-username-secret"],
+    tags: ["inspection", "security", "privilege", "verification", "fundamentals"],
+  },
+  {
+    id: "cmd-show-debugging",
+    name: "show debugging",
+    aliases: ["sh debug", "sh debugging"],
+    syntax: "show debugging",
+    platforms: ["IOS", "IosXe", "NxOs", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNP-ENARSI",
+    scope: "certification",
+    topic: "Diagnostics",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENARSI (300-410) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض كل أوامر debug النشطة حاليًا على الجهاز. حاسم قبل إغلاق جلسة لمنع ترك debug يستهلك CPU.",
+    description:
+      "show debugging يعرض كل عمليات debug المُفعّلة حاليًا. كل debug نشط يُذكر باسمه ومستواه (مثل OSPF adjacency events، BGP updates، ICMP packet، IP routing). الأمر حاسم لسببين: (1) قبل إغلاق جلسة، شغّله للتأكد من عدم ترك debug نشط — debug المنسي قد يستهلك CPU عاليًا ويسبب توقف الجهاز، (2) عند تلقي بلاغ عن بطء جهاز، شغّل show debugging أولًا — غالبًا السبب debug تركه مهندس آخر. لإيقاف كل debug دفعة واحدة: undebug all (يُختصر u all).",
+    examples: [
+      {
+        context: "عرض debugs النشطة",
+        code: "Router# show debugging",
+        output:
+          "ARP:\n  ARP packet debugging is on\n\nOSPF adjacency events debugging is on\n\nIP routing:\n  RIP routing protocol debugging is on",
+        outputExplanation:
+          "ثلاثة debugs نشطة: ARP packet debugging، OSPF adjacency events debugging، RIP routing debugging. كلها تستهلك CPU — ينبغي إيقافها بـ undebug all فور الانتهاء.",
+      },
+    ],
+    verificationCommands: ["undebug all", "show processes cpu sorted"],
+    troubleshootingNotes: [
+      "قبل إغلاق أي جلسة فيها debug، شغّل show debugging ثم undebug all — debug المنسي قد يسقط جهاز الإنتاج.",
+      "إذا تلقيت بلاغًا عن بطء مفاجئ في جهاز، شغّل show debugging أولًا — غالبًا السبب debug نشط.",
+    ],
+    warnings: [
+      "debug all على جهاز إنتاج سيتعطل تحت أي حمل — لا تستخدمه أبدًا.",
+    ],
+    commonErrors: [
+      "نسيان undebug all بعد الانتهاء من التشخيص — debug يبقى مفعّلًا ويسبب CPU عاليًا لاحقًا.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لإيقاف كل debug: undebug all (u all).",
+    references: [
+      {
+        label: "Cisco IOS Debug Command Reference — show debugging",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/debug/command/dbg-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-debug"],
+    tags: ["diagnostics", "debugging", "verification", "enarsi"],
+  },
+  {
+    id: "cmd-show-archive",
+    name: "show archive",
+    aliases: ["sh archive", "sh arch"],
+    syntax: "show archive [config {differences | incremental-diffs <url>} | statistics]",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "IOS 12.3(7)T+؛ IOS XE كافة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "CCNP-ENCOR",
+    scope: "certification",
+    topic: "Configuration Management",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENCOR (350-401) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض ملفات الإعداد المؤرشفة في المسار المُعدّ + إحصاءات الأرشفة. الكلمة config differences تعرض الفرق بين running-config الحالي وملف مؤرشف — حاسمة للـ rollback.",
+    description:
+      "show archive يعرض قائمة بكل ملفات الإعداد المؤرشفة في المسار المُعدّ (path). لكل ملف: اسم الملف، حجمه، وتاريخ الإنشاء. الكلمة config differences تُظهر الفرق بين running-config الحالي وملف مؤرشف محدد — هذا أساس configure replace. الكلمة config incremental-diffs <url> تُظهر التغييرات المخططة لتطبيق ملف محدد على running-config. الكلمة statistics تعرض عدّادات الأرشفة: عدد مرات الحفظ، آخر أرشفة، عدد الأخطاء. هذا الأمر مكمل لـ archive (للإعداد) و configure replace (للـ rollback الذري).",
+    parameters: [
+      {
+        name: "config differences",
+        description: "تعرض الفرق بين running-config الحالي وملف مؤرشف محدد.",
+        required: false,
+      },
+      {
+        name: "config incremental-diffs <url>",
+        description: "تعرض التغييرات المخططة لتطبيق ملف على running-config.",
+        required: false,
+      },
+      {
+        name: "statistics",
+        description: "تعرض عدّادات الأرشفة.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض ملفات الإعداد المؤرشفة",
+        code: "Router# show archive",
+        output:
+          "The maximum archive configurations to keep is 50.\nThe archive configurations are stored in scp://admin@10.10.99.50/Cairo-Edge-01-config-\n\n#   filename\n--- --------------------------------------------\n1   scp://admin@10.10.99.50/Cairo-Edge-01-config--Oct-29-14-30-00\n2   scp://admin@10.10.99.50/Cairo-Edge-01-config--Oct-29-13-00-00\n3   scp://admin@10.10.99.50/Cairo-Edge-01-config--Oct-29-12-00-00",
+        outputExplanation:
+          "50 أرشيف كحد أقصى (maximum)، مخزّنة على خادم SCP. 3 ملفات مؤرشفة — آخرها الساعة 14:30 اليوم.",
+      },
+    ],
+    verificationCommands: ["show archive config differences", "show archive statistics", "configure replace"],
+    troubleshootingNotes: [
+      "إذا كانت قائمة الأرشيف فارغة، فالأرشفة لم تعمل — تحقق من إعداد archive path و write-memory و time-period.",
+      "استخدم show archive config differences قبل configure replace لرؤية التغييرات المخططة قبل التطبيق.",
+    ],
+    commonErrors: [
+      "نسيان أن show archive (بدون وسائط) يعرض فقط قائمة الملفات — لرؤية الفرق استخدم show archive config differences.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Configuration Fundamentals Command Reference — show archive",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/fundamentals/command/cf-command-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-archive", "cmd-configure-replace", "cmd-copy-run-start"],
+    tags: ["configuration-management", "archive", "rollback", "verification", "encor"],
+  },
+  {
+    id: "cmd-show-controllers",
+    name: "show controllers",
+    aliases: ["sh controllers", "sh cont"],
+    syntax: "show controllers [{<interface> | switching | fabric | plim}]",
+    platforms: ["IOS", "IosXe", "IosXr"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Router#",
+    certLevel: "Extended",
+    scope: "extended",
+    topic: "Interface Inspection",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENARSI (300-410) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض معلومات فيزيائية تفصيلية عن واجهة محددة أو كل الواجهات: نوع الواجهة، إصدارات الـ ASIC، حالة الكابل، توقيت الساعة، أخطاء الطبقة الفيزيائية. أمر تشخيص عميق لمشاكل Layer 1.",
+    description:
+      "show controllers يعرض معلومات فيزيائية تفصيلية لا تظهر في show interfaces. لكل واجهة: نوع الواجهة (Gigabit Ethernet، Serial، T1/E1، إلخ)، إصدار الـ ASIC، حالة الكابل (موصول/غير موصول)، توقيت الساعة (للواجهات التسلسلية)، عدّادات الأخطاء الفيزيائية (CRC، framing، line coding)، وعداد قوائم الانتظار. على Catalyst 9000، show controllers ethernet-controller <iface> يُظهر عدّادات ASIC مفصلة (rx_packets، tx_packets، rx_drops، tx_drops لكل CoS queue). هذا أمر تشخيص عميق يُستخدم عندما تظهر show interfaces أخطاء فيزيائية لكن لا يعرف السبب. على IOS XR، استخدم show controllers <iface> all.",
+    parameters: [
+      {
+        name: "<interface>",
+        description: "تُرشّح لواجهة محددة (مثل GigabitEthernet0/0/0).",
+        required: false,
+      },
+      {
+        name: "switching",
+        description: "تعرض عدّادات switching لكل واجهة.",
+        required: false,
+      },
+      {
+        name: "fabric",
+        description: "تعرض حالة fabric للـ chassis (Catalyst 6500/6800).",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض تفاصيل واجهة محددة",
+        code: "Router# show controllers GigabitEthernet0/0/0",
+        output:
+          "Interface GigabitEthernet0/0/0 (Gigabit Ethernet controller)\nHardware is Gigabit Ethernet MAC, AFE\n  Connection mode is auto\n  Speed = 1000, Duplex = Full\n  Link is up\n  Media type is T\n  Port is Optical\n  Loopback mode is none\n  Auto-Negotiation is enabled\n  Statistics:\n    rx_packets = 12345\n    tx_packets = 12345\n    rx_bytes = 1234567\n    tx_bytes = 1234567\n    rx_dropped = 0\n    tx_dropped = 0\n    rx_crc_errors = 0\n    rx_align_errors = 0\n    tx_collisions = 0\n    tx_late_collisions = 0",
+        outputExplanation:
+          "الواجهة Gigabit Ethernet، اتصال auto، 1Gbps Full-duplex، Optical. كل العدّادات سليمة: 0 أخطاء CRC، 0 اصطفاف، 0 تصادم.",
+      },
+    ],
+    verificationCommands: ["show interfaces <iface>", "show interfaces <iface> counters errors", "show platform hardware fed"],
+    troubleshootingNotes: [
+      "إذا ظهر rx_crc_errors متزايدًا، فالطبقة الفيزيائية سيئة: كابل، SFP، أو ضوضاء كهرومغناطيسية.",
+      "tx_late_collisions على Ethernet full-duplex يدل على اختلاف duplex — تحقق من الجانبين.",
+    ],
+    commonErrors: [
+      "نسيان أن show controllers يحتاج اسم الواجهة الكامل (GigabitEthernet0/0/0) وليس الاختصار.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط.",
+    references: [
+      {
+        label: "Cisco IOS Interface Command Reference — show controllers",
+        url: "https://www.cisco.com/c/en/us/td/docs/ios-xml/ios/interface/command/ir-cr-book.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-interfaces", "cmd-show-interfaces-status", "cmd-show-interfaces-counters-errors"],
+    tags: ["inspection", "interface", "hardware", "verification", "enarsi", "extended"],
+  },
+  {
+    id: "cmd-show-interfaces-counters-errors",
+    name: "show interfaces counters errors",
+    aliases: ["sh int count err", "sh int counters errors"],
+    syntax: "show interfaces [{<interface> | module <num>}] counters errors",
+    platforms: ["IOS", "IosXe"],
+    versionRange: "جميع الإصدارات المدعومة",
+    cliMode: ["Privileged EXEC"],
+    promptShape: "Switch#",
+    certLevel: "CCNP-ENARSI",
+    scope: "certification",
+    topic: "Interface Inspection",
+    category: "Fundamentals",
+    curriculumVersions: ["CCNP ENARSI (300-410) v1.1"],
+    status: "Current",
+    summary:
+      "يعرض جدولًا مختصرًا لأخطاء كل واجهة: FCS، alignment، runts، giants، underruns، output errors، collisions. أمر سريع لاكتشاف واجهة بها مشاكل فيزيائية.",
+    description:
+      "show interfaces counters errors يعرض جدولًا مختصرًا لكل واجهة مع عدّادات أخطاء مفصلة. الأعمدة: Port (اسم الواجهة)، Align-Err (أخطاء اصطفاف — يدل على مشاكل إشارة)، FCS-Err (Frame Check Sequence — CRC خاطئ، يدل على كابل/SFP سيئ)، Xmit-Err (أخطاء إرسال)، Rcv-Err (أخطاء استقبال)، UnderSz (إطارات أصغر من المتوقع)، OverSz (إطارات أكبر من المتوقع)، Single-Coll (تصادم مفرد)، Multi-Coll (تصادم متعدد)، Late-Coll (تصادم متأخر — يدل على اختلاف duplex)، Excess-Coll (تصادم مفرط)، Discard (حزم مُتجاهَلة). الأمر سريع جدًا ويُستخدم كفحص أولي قبل show interfaces <iface> التفصيلي. لرؤية عدّادات شاملة (بما فيها حزم سليمة): show interfaces counters.",
+    parameters: [
+      {
+        name: "<interface>",
+        description: "تُرشّح لواجهة محددة.",
+        required: false,
+      },
+      {
+        name: "module <num>",
+        description: "تُرشّح لموديول محدد.",
+        required: false,
+      },
+    ],
+    examples: [
+      {
+        context: "عرض أخطاء كل الواجهات",
+        code: "Switch# show interfaces counters errors",
+        output:
+          "Port        Align-Err    FCS-Err    Xmit-Err    Rcv-Err   UnderSz    OverSz   Single-Coll  Multi-Coll  Late-Coll  Excess-Coll\nGi1/0/1     0            0          0           0         0          0        0            0           0          0\nGi1/0/2     0            3          0           0         0          0        0            0           0          0\nGi1/0/3     0            0          0           0         0          0        0            0           12         0\nGi1/0/10    0            0          0           0         0          0        0            0           0          0",
+        outputExplanation:
+          "Gi1/0/1 سليمة (كل العدّادات صفر). Gi1/0/2 بها 3 أخطاء FCS — مشكلة كابل/SFP. Gi1/0/3 بها 12 late-collision — اختلاف duplex. Gi1/0/10 سليمة. هذا فحص سريع يحدد الواجهات التي تحتاج تشخيص أعمق.",
+      },
+    ],
+    verificationCommands: ["show interfaces <iface>", "show controllers <iface>", "clear counters <iface>"],
+    troubleshootingNotes: [
+      "FCS-Err متزايد: كابل أو SFP سيئ. استبدل الكابل أولًا ثم SFP.",
+      "Late-Coll على Ethernet full-duplex يدل على اختلاف duplex — تحقق من السرعة/duplex على الجانبين.",
+      "Align-Err: مشكلة إشارة كهربائية — تحقق من طول الكابل ونوعه.",
+    ],
+    commonErrors: [
+      "عدم مسح العدّادات قبل الفحص — العدّادات تتراكم منذ آخر إقلاع. استخدم clear counters ثم انتظر ساعة وأعد الفحص.",
+    ],
+    undoMethod: "لا ينطبق — أمر عرض فقط. لمسح العدّادات: clear counters.",
+    references: [
+      {
+        label: "Catalyst 9300 Interface Command Reference — show interfaces counters",
+        url: "https://www.cisco.com/c/en/us/td/docs/switches/lan/catalyst9300/software/release/17-12/command/reference/b_1712_cmd_ref_9300_9300l/b_1712_cmd_ref_9300_9300l_chapter_011.html",
+      },
+    ],
+    verification: "Verified",
+    lastReviewed: "2026-10-29",
+    relatedCommandIds: ["cmd-show-interfaces", "cmd-show-interfaces-status", "cmd-show-controllers"],
+    tags: ["inspection", "interface", "errors", "verification", "troubleshooting", "enarsi"],
+  },
 ];
 
 export const TOPIC_COVERAGE: TopicCoverage[] = [
   { topic: "CLI Modes", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 8, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
   { topic: "Configuration Inspection", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 6, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
-  { topic: "Configuration Management", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 8, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
-  { topic: "System Inspection", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 8, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
+  { topic: "Configuration Management", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 8, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
+  { topic: "System Inspection", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 8, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
   { topic: "Device Identity", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 5, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
   { topic: "Management Access", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 12, documented: 7, verified: 7, needsReview: 0, coverageState: "partial" },
   { topic: "Connectivity Verification", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 6, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
-  { topic: "Interface Inspection", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 10, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
-  { topic: "Diagnostics", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 15, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
+  { topic: "Interface Inspection", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 10, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
+  { topic: "Diagnostics", category: "Fundamentals", certLevel: "Fundamentals", totalIdentified: 15, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
   { topic: "Security", category: "Security", certLevel: "Fundamentals", totalIdentified: 15, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
-  { topic: "VLANs and SVI", category: "Switching", certLevel: "CCNA", totalIdentified: 14, documented: 5, verified: 5, needsReview: 0, coverageState: "partial" },
-  { topic: "Spanning Tree Protocol", category: "Switching", certLevel: "CCNA", totalIdentified: 18, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
-  { topic: "EtherChannel / LAG", category: "Switching", certLevel: "CCNP-ENCOR", totalIdentified: 10, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
+  { topic: "VLANs and SVI", category: "Switching", certLevel: "CCNA", totalIdentified: 14, documented: 9, verified: 9, needsReview: 0, coverageState: "partial" },
+  { topic: "Spanning Tree Protocol", category: "Switching", certLevel: "CCNA", totalIdentified: 18, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
+  { topic: "EtherChannel / LAG", category: "Switching", certLevel: "CCNP-ENCOR", totalIdentified: 10, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
   { topic: "Switch Security", category: "Security", certLevel: "CCNA", totalIdentified: 12, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
   { topic: "IP Routing", category: "Routing", certLevel: "CCNA", totalIdentified: 10, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
   { topic: "Static Routing", category: "Routing", certLevel: "CCNA", totalIdentified: 6, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
   { topic: "OSPF", category: "Routing", certLevel: "CCNA", totalIdentified: 22, documented: 6, verified: 6, needsReview: 0, coverageState: "partial" },
-  { topic: "EIGRP", category: "Routing", certLevel: "CCNA", totalIdentified: 18, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
+  { topic: "EIGRP", category: "Routing", certLevel: "CCNA", totalIdentified: 18, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
   { topic: "RIPv2 (Historical)", category: "Routing", certLevel: "Extended", totalIdentified: 5, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
   { topic: "BGP", category: "Routing", certLevel: "CCNP-ENCOR", totalIdentified: 30, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
   { topic: "Route Policy", category: "Routing", certLevel: "CCNP-ENARSI", totalIdentified: 14, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
@@ -5604,13 +7219,13 @@ export const TOPIC_COVERAGE: TopicCoverage[] = [
   { topic: "Policy-Based Routing", category: "Routing", certLevel: "CCNP-ENARSI", totalIdentified: 6, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
   { topic: "IPv6", category: "Routing", certLevel: "CCNA", totalIdentified: 16, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
   { topic: "Network Assurance", category: "Routing", certLevel: "CCNP-ENARSI", totalIdentified: 8, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },
-  { topic: "Access Control", category: "Security", certLevel: "CCNA", totalIdentified: 12, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
+  { topic: "Access Control", category: "Security", certLevel: "CCNA", totalIdentified: 12, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
   { topic: "VPN / IPsec", category: "Security", certLevel: "CCNP-ENCOR", totalIdentified: 16, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
   { topic: "Tunnels", category: "WAN", certLevel: "CCNP-ENCOR", totalIdentified: 8, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
-  { topic: "NAT", category: "Services", certLevel: "CCNA", totalIdentified: 8, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
-  { topic: "DHCP", category: "Services", certLevel: "CCNA", totalIdentified: 10, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
-  { topic: "Discovery", category: "Services", certLevel: "CCNA", totalIdentified: 6, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
-  { topic: "Time & Logging", category: "Services", certLevel: "CCNA", totalIdentified: 10, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
+  { topic: "NAT", category: "Services", certLevel: "CCNA", totalIdentified: 8, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
+  { topic: "DHCP", category: "Services", certLevel: "CCNA", totalIdentified: 10, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
+  { topic: "Discovery", category: "Services", certLevel: "CCNA", totalIdentified: 6, documented: 4, verified: 4, needsReview: 0, coverageState: "partial" },
+  { topic: "Time & Logging", category: "Services", certLevel: "CCNA", totalIdentified: 10, documented: 7, verified: 7, needsReview: 0, coverageState: "partial" },
   { topic: "First Hop Redundancy", category: "Services", certLevel: "CCNA", totalIdentified: 8, documented: 1, verified: 1, needsReview: 0, coverageState: "partial" },
   { topic: "QoS", category: "Services", certLevel: "CCNP-ENCOR", totalIdentified: 16, documented: 3, verified: 3, needsReview: 0, coverageState: "partial" },
   { topic: "Management & Monitoring", category: "Services", certLevel: "CCNA", totalIdentified: 14, documented: 2, verified: 2, needsReview: 0, coverageState: "partial" },

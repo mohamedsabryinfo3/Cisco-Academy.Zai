@@ -141,12 +141,17 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-  /* Arabic UI: keep command code in LTR even when document is RTL */
+  /* Arabic UI: keep all command code in LTR even when document is RTL.
+     Use unicode-bidi: isolate to fully separate from surrounding Arabic text. */
   code, pre, kbd, .cli-code, .mono, .font-mono {
     direction: ltr;
     text-align: left;
-    unicode-bidi: embed;
+    unicode-bidi: isolate;
     font-family: var(--font-mono), "JetBrains Mono", ui-monospace, monospace;
+  }
+  /* Dialog content — prevent horizontal scroll on the page when modal opens */
+  [role="dialog"] {
+    max-width: calc(100vw - 2rem) !important;
   }
 }
 
@@ -175,19 +180,28 @@
   animation: fade-in-up 0.3s ease-out;
 }
 
-/* Syntax highlight box for CLI — always dark for terminal-like fidelity */
+/* Syntax highlight box for CLI — always dark for terminal-like fidelity.
+   Uses pre-wrap + overflow-wrap to ensure commands are NEVER truncated,
+   even on narrow screens or with very long syntax lines. */
 .cli-code {
   font-family: var(--font-mono), ui-monospace, monospace;
   background: oklch(0.16 0.008 230);
   color: oklch(0.96 0.005 220);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  line-height: 1.55;
-  overflow-x: auto;
-  white-space: pre;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
   direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
   border: 1px solid oklch(0.25 0.01 230);
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  tab-size: 2;
 }
 .dark .cli-code {
   background: oklch(0.12 0.005 230);
@@ -203,6 +217,25 @@
 }
 .cli-output {
   color: oklch(0.75 0.01 220);
+}
+
+/* Inline code (in body text) — also isolated from RTL */
+:not(pre) > code,
+.inline-code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  direction: ltr;
+  unicode-bidi: isolate;
+  display: inline-block;
+  background: oklch(0.94 0.005 220);
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+  border: 1px solid oklch(0.88 0.005 220);
+}
+.dark :not(pre) > code,
+.dark .inline-code {
+  background: oklch(0.26 0.01 230);
+  border-color: oklch(1 0 0 / 10%);
 }
 
 /* Search input — Cairo placeholder smaller than input text */
