@@ -15,6 +15,7 @@ import {
   STATUS_COLORS,
 } from "@/lib/cisco-helpers";
 import type { CiscoCommand } from "@/lib/cisco-types";
+import { BidiText } from "@/components/cisco/bidi-text";
 
 interface Props {
   command: CiscoCommand;
@@ -72,17 +73,21 @@ export function CommandCard({ command, onOpen }: Props) {
             )}
           </div>
           <p className="text-xs text-muted-foreground mb-2">{command.topic}</p>
-          <p className="text-sm text-foreground/80 line-clamp-2 leading-6">{command.summary}</p>
+          <p className="text-sm text-foreground/80 line-clamp-2 leading-6 bidi-rtl" dir="rtl">
+            <BidiText>{command.summary}</BidiText>
+          </p>
 
           {isHistorical && (
-            <p className="text-[11px] mt-2 text-amber-700 dark:text-amber-400 leading-5 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5">
-              {command.status === "Deprecated"
-                ? "أمر مُهمَل — لا يُنصح باستخدامه في النشرات الجديدة."
-                : command.status === "Obsolete"
-                ? "أمر منتهٍ — لم يعد مدعومًا ضمن النطاق المُتحقَّق منه."
-                : command.status === "Historical"
-                ? "أمر تاريخي — محفوظ لفهم الإصدارات/المناهج السابقة."
-                : "أمر خارج المنهج الحالي — قد يبقى مدعومًا فنيًا."}
+            <p className="text-[11px] mt-2 text-amber-700 dark:text-amber-400 leading-5 bg-amber-500/10 border border-amber-500/30 rounded px-2 py-1.5 bidi-rtl" dir="rtl">
+              <BidiText wrapLatin={false}>
+                {command.status === "Deprecated"
+                  ? "أمر مُهمَل — لا يُنصح باستخدامه في النشرات الجديدة."
+                  : command.status === "Obsolete"
+                  ? "أمر منتهٍ — لم يعد مدعومًا ضمن النطاق المُتحقَّق منه."
+                  : command.status === "Historical"
+                  ? "أمر تاريخي — محفوظ لفهم الإصدارات/المناهج السابقة."
+                  : "أمر خارج المنهج الحالي — قد يبقى مدعومًا فنيًا."}
+              </BidiText>
             </p>
           )}
 

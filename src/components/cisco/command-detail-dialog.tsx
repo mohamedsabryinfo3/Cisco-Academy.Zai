@@ -47,6 +47,7 @@ import {
   STATUS_COLORS,
 } from "@/lib/cisco-helpers";
 import type { CiscoCommand } from "@/lib/cisco-types";
+import { BidiText, BidiParagraph, BidiListItem } from "@/components/cisco/bidi-text";
 import { toast } from "@/hooks/use-toast";
 
 interface Props {
@@ -141,8 +142,8 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                   اختصارات: {command.aliases.join("، ")}
                 </div>
               )}
-              <DialogDescription className="mt-1 text-sm text-muted-foreground">
-                {command.summary}
+              <DialogDescription className="mt-1 text-sm text-muted-foreground bidi-rtl" dir="rtl">
+                <BidiText>{command.summary}</BidiText>
               </DialogDescription>
             </div>
             <Button
@@ -187,11 +188,11 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                   <div className="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1">
                     ملاحظة تاريخية
                   </div>
-                  <p className="text-xs leading-6 text-amber-900 dark:text-amber-100">
-                    {command.historicalNote}
+                  <p className="text-xs leading-6 text-amber-900 dark:text-amber-100 bidi-rtl" dir="rtl">
+                    <BidiText>{command.historicalNote}</BidiText>
                   </p>
                   {command.modernAlternative && (
-                    <p className="text-xs mt-2 text-amber-900 dark:text-amber-100">
+                    <p className="text-xs mt-2 text-amber-900 dark:text-amber-100 bidi-rtl" dir="rtl">
                       <strong>البديل الحديث:</strong>{" "}
                       <span dir="ltr" className="font-mono">{command.modernAlternative}</span>
                     </p>
@@ -270,7 +271,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                   <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     الشرح التفصيلي
                   </h4>
-                  <p className="text-sm leading-7 text-foreground/90">{command.description}</p>
+                  <BidiParagraph className="text-sm leading-7 text-foreground/90">
+                    {command.description}
+                  </BidiParagraph>
                 </section>
 
                 {command.parameters && command.parameters.length > 0 && (
@@ -303,7 +306,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs leading-6 text-foreground/80">{p.description}</p>
+                          <BidiText className="text-xs leading-6 text-foreground/80">
+                            {p.description}
+                          </BidiText>
                           {p.allowedValues && (
                             <p className="text-[10px] text-muted-foreground mt-1" dir="ltr">
                               القيم: <code className="font-mono">{p.allowedValues.join(" | ")}</code>
@@ -320,7 +325,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                     <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                       نطاق الإصدار
                     </h4>
-                    <p className="text-sm text-foreground/90">{command.versionRange}</p>
+                    <BidiText className="text-sm text-foreground/90">
+                      {command.versionRange}
+                    </BidiText>
                   </section>
                 )}
 
@@ -344,9 +351,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                     <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1">
                       <Undo2 className="h-3.5 w-3.5" /> طريقة التراجع
                     </h4>
-                    <p className="text-sm leading-6 text-foreground/90 bg-muted/40 border rounded-md p-3">
-                      {command.undoMethod}
-                    </p>
+                    <div className="text-sm leading-6 text-foreground/90 bg-muted/40 border rounded-md p-3 bidi-rtl" dir="rtl">
+                      <BidiText>{command.undoMethod}</BidiText>
+                    </div>
                   </section>
                 )}
 
@@ -360,9 +367,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                         {command.modernAlternative}
                       </code>
                       {command.differencesFromAlternative && (
-                        <p className="text-xs leading-6 text-foreground/80 mt-2">
-                          {command.differencesFromAlternative}
-                        </p>
+                        <div className="text-xs leading-6 text-foreground/80 mt-2 bidi-rtl" dir="rtl">
+                          <BidiText>{command.differencesFromAlternative}</BidiText>
+                        </div>
                       )}
                     </div>
                   </section>
@@ -377,9 +384,10 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                       {command.warnings.map((w, i) => (
                         <li
                           key={i}
-                          className="text-sm leading-6 bg-amber-500/10 border border-amber-500/30 rounded-md p-3 text-amber-900 dark:text-amber-100"
+                          className="text-sm leading-6 bg-amber-500/10 border border-amber-500/30 rounded-md p-3 text-amber-900 dark:text-amber-100 bidi-rtl"
+                          dir="rtl"
                         >
-                          {w}
+                          <BidiText>{w}</BidiText>
                         </li>
                       ))}
                     </ul>
@@ -395,9 +403,10 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                       {command.commonErrors.map((e, i) => (
                         <li
                           key={i}
-                          className="text-sm leading-6 bg-muted/40 border rounded-md p-3 text-foreground/90"
+                          className="text-sm leading-6 bg-muted/40 border rounded-md p-3 text-foreground/90 bidi-rtl"
+                          dir="rtl"
                         >
-                          {e}
+                          <BidiText>{e}</BidiText>
                         </li>
                       ))}
                     </ul>
@@ -480,8 +489,9 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                         </>
                       )}
                       {ex.outputExplanation && (
-                        <div className="text-xs text-foreground/80 bg-muted/40 border rounded-md p-2 leading-6">
-                          <strong>تفسير:</strong> {ex.outputExplanation}
+                        <div className="text-xs text-foreground/80 bg-muted/40 border rounded-md p-2 leading-6 bidi-rtl" dir="rtl">
+                          <strong>تفسير:</strong>{" "}
+                          <BidiText>{ex.outputExplanation}</BidiText>
                         </div>
                       )}
                     </section>
@@ -534,9 +544,10 @@ export function CommandDetailDialog({ command, open, onOpenChange }: Props) {
                     {command.troubleshootingNotes.map((t, i) => (
                       <li
                         key={i}
-                        className="text-sm leading-6 bg-muted/40 border rounded-md p-3 text-foreground/90"
+                        className="text-sm leading-6 bg-muted/40 border rounded-md p-3 text-foreground/90 bidi-rtl"
+                        dir="rtl"
                       >
-                        {t}
+                        <BidiText>{t}</BidiText>
                       </li>
                     ))}
                   </ul>

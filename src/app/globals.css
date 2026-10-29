@@ -153,6 +153,16 @@
   [role="dialog"] {
     max-width: calc(100vw - 2rem) !important;
   }
+  /* bidi-rtl — force RTL direction for Arabic paragraphs.
+     Removed unicode-bidi: plaintext because it was overriding dir="rtl"
+     and auto-detecting LTR from first English character, causing the
+     paragraph to start from the LEFT (wrong for Arabic UI).
+     Now we use explicit dir="rtl" + default unicode-bidi: normal.
+     English terms in <code> use unicode-bidi: isolate to be LTR islands. */
+  .bidi-rtl {
+    direction: rtl;
+    text-align: right;
+  }
 }
 
 /* Custom scrollbar */

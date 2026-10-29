@@ -5,7 +5,10 @@ import { persist, createJSONStorage } from "zustand/middleware";
 
 // ===================================================================
 // User state: favorites, notes, study progress, recently viewed.
-// All persisted to localStorage — no backend account required.
+//
+// التخزين: localStorage (دائم على نفس المتصفح).
+// للحفظ الدائم عبر الأجهزة: استخدم exportData / importData
+// لتصدير كل البيانات إلى ملف JSON واستعادتها على أي جهاز.
 // ===================================================================
 
 export type StudyStatus = "not-started" | "learning" | "practiced" | "mastered";
@@ -23,13 +26,17 @@ interface UserState {
   addRecentlyViewed: (id: string) => void;
   setTheme: (theme: "light" | "dark" | "system") => void;
   resetAll: () => void;
+
+  // تصدير/استيراد للحفظ الدائم عبر الأجهزة
+  exportData: () => string;
+  importData: (json: string) => boolean;
 }
 
 const MAX_RECENT = 20;
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       favorites: [],
       notes: {},
       study: {},
@@ -81,6 +88,35 @@ export const useUserStore = create<UserState>()(
           recentlyViewed: [],
           theme: "light",
         }),
+
+      // تصدير كل البيانات إلى JSON (للحفظ الدائم على ملف)
+      exportData: () => {
+        const s = get();
+        const data = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          favorites: s.favorites,
+          notes: s.notes,
+          study: s.study,
+        };
+        return JSON.stringify(data, null, 2);
+      },
+
+      // استيراد البيانات من JSON (استعادة من ملف)
+      importData: (json: string) => {
+        try {
+          const data = JSON.parse(json);
+          if (typeof data !== "object" || data === null) return false;
+          set({
+            favorites: Array.isArray(data.favorites) ? data.favorites : [],
+            notes: typeof data.notes === "object" && data.notes !== null ? data.notes : {},
+            study: typeof data.study === "object" && data.study !== null ? data.study : {},
+          });
+          return true;
+        } catch {
+          return false;
+        }
+      },
     }),
     {
       name: "cisco-academy-user",

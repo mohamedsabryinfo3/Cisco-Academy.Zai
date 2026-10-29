@@ -51,11 +51,14 @@ import {
   Lightbulb,
   Cpu,
   History,
+  Download,
+  Upload,
 } from "lucide-react";
 import {
   CommandCard,
 } from "@/components/cisco/command-card";
 import { CommandDetailDialog } from "@/components/cisco/command-detail-dialog";
+import { BidiText, BidiParagraph, BidiListItem } from "@/components/cisco/bidi-text";
 import {
   COMMANDS,
   TOPIC_COVERAGE,
@@ -197,10 +200,10 @@ export function DashboardView({
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground leading-tight mb-2">
                 Cisco Commands Academy
               </h1>
-              <p className="text-sm text-muted-foreground leading-7 max-w-2xl">
-                موسوعة تفاعلية لأوامر Cisco CLI — من أساسيات الشبكات، عبر مناهج CCNA و CCNP
-                Enterprise (ENCOR + ENARSI)، مع محرك بحث دقيق، مكتبة تشخيص أعطال، وتتبع شخصي
-                لتقدّم الدراسة. جميع السجلات موثّقة من المراجع الرسمية لـ Cisco.
+              <p className="text-sm text-muted-foreground leading-7 max-w-2xl bidi-rtl" dir="rtl">
+                <BidiText wrapLatin={false}>
+                  {"موسوعة تفاعلية لأوامر Cisco CLI — من أساسيات الشبكات، عبر مناهج CCNA و CCNP Enterprise (ENCOR + ENARSI)، مع محرك بحث دقيق، مكتبة تشخيص أعطال، وتتبع شخصي لتقدّم الدراسة. جميع السجلات موثّقة من المراجع الرسمية لـ Cisco."}
+                </BidiText>
               </p>
               <div className="flex flex-wrap gap-2 mt-4">
                 <Button size="sm" onClick={() => onNavigate("library")}>
@@ -652,7 +655,9 @@ export function StudyPathView({ onOpenCommand }: { onOpenCommand: (cmd: CiscoCom
               </div>
             </CardHeader>
             <CardContent className="pt-4">
-              <p className="text-sm text-foreground/85 leading-7 mb-4">{stage.description}</p>
+              <p className="text-sm text-foreground/85 leading-7 mb-4 bidi-rtl" dir="rtl">
+                <BidiText>{stage.description}</BidiText>
+              </p>
 
               <div className="space-y-1.5 mb-4">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -782,7 +787,9 @@ export function TroubleshootingView({
                   <AlertCircle className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <CardTitle className="text-sm font-semibold leading-snug">{entry.problem}</CardTitle>
+                  <CardTitle className="text-sm font-semibold leading-snug bidi-rtl" dir="rtl">
+                    <BidiText wrapLatin={false}>{entry.problem}</BidiText>
+                  </CardTitle>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge variant="outline" className="text-[10px]">{entry.category}</Badge>
                     <Badge
@@ -855,9 +862,9 @@ function TSSection({ title, items, icon }: { title: string; items: string[]; ico
       </h4>
       <ul className="space-y-1.5">
         {items.map((item, i) => (
-          <li key={i} className="text-sm leading-6 text-foreground/85 flex gap-2">
-            <span className="text-muted-foreground mt-1">•</span>
-            <span>{item}</span>
+          <li key={i} className="text-sm leading-6 text-foreground/85 bidi-rtl" dir="rtl">
+            <span className="text-muted-foreground mt-1 ml-2 inline-block">•</span>
+            <BidiText>{item}</BidiText>
           </li>
         ))}
       </ul>
@@ -899,7 +906,9 @@ export function PlatformsView() {
                   {cmdCount} أمر في المكتبة
                 </Badge>
               </div>
-              <p className="text-sm text-foreground/85 leading-6 mb-3">{p.description}</p>
+              <p className="text-sm text-foreground/85 leading-6 mb-3 bidi-rtl" dir="rtl">
+                <BidiText>{p.description}</BidiText>
+              </p>
 
               <div className="space-y-2 text-xs">
                 <div>
@@ -922,9 +931,9 @@ export function PlatformsView() {
                     ))}
                   </div>
                 </div>
-                <div className="bg-muted/40 border rounded-md p-2 mt-2 text-foreground/85 leading-6">
+                <div className="bg-muted/40 border rounded-md p-2 mt-2 text-foreground/85 leading-6 bidi-rtl" dir="rtl">
                   <Lightbulb className="h-3.5 w-3.5 inline ml-1 text-amber-500" />
-                  {p.notes}
+                  <BidiText>{p.notes}</BidiText>
                 </div>
               </div>
             </Card>
@@ -1305,6 +1314,8 @@ export function FavoritesView({
   const favorites = useUserStore((s) => s.favorites);
   const notes = useUserStore((s) => s.notes);
   const study = useUserStore((s) => s.study);
+  const exportData = useUserStore((s) => s.exportData);
+  const importData = useUserStore((s) => s.importData);
 
   const favoriteCommands = favorites
     .map((id) => COMMANDS.find((c) => c.id === id))
@@ -1313,6 +1324,35 @@ export function FavoritesView({
   const notesCommands = Object.keys(notes)
     .map((id) => COMMANDS.find((c) => c.id === id))
     .filter(Boolean) as CiscoCommand[];
+
+  const handleExport = () => {
+    const json = exportData();
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cisco-academy-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "تم تصدير البيانات إلى ملف" });
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      const ok = importData(text);
+      if (ok) {
+        toast({ title: "تم استيراد البيانات بنجاح" });
+      } else {
+        toast({ title: "فشل الاستيراد — ملف غير صالح", variant: "destructive" });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   return (
     <div className="space-y-4">
@@ -1323,9 +1363,38 @@ export function FavoritesView({
             المفضلة والملاحظات
           </CardTitle>
           <CardDescription className="text-xs">
-            بياناتك الشخصية محفوظة محليًا في متصفحك فقط — لا تُرسل إلى أي خادم.
+            بياناتك الشخصية محفوظة محليًا في متصفحك. للحفظ الدائم عبر الأجهزة،
+            صدّر بياناتك إلى ملف واستعدها على أي جهاز.
           </CardDescription>
         </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={handleExport}>
+              <Download className="h-4 w-4 ml-1.5" />
+              تصدير البيانات (نسخة احتياطية)
+            </Button>
+            <label>
+              <input
+                type="file"
+                accept="application/json,.json"
+                onChange={handleImport}
+                className="hidden"
+              />
+              <Button size="sm" variant="outline" type="button" asChild>
+                <span>
+                  <Upload className="h-4 w-4 ml-1.5" />
+                  استيراد البيانات
+                </span>
+              </Button>
+            </label>
+          </div>
+          <div className="text-[11px] text-muted-foreground bg-muted/40 border rounded-md p-2.5 leading-5" dir="rtl">
+            <strong>ملاحظة:</strong> الملاحظات والمفضلة محفوظة دائمًا في متصفحك
+            (localStorage) — تبقى بعد إغلاق المتصفح وإعادة فتحه. للتأكد من عدم
+            فقدانها عند مسح بيانات المتصفح أو تغيير الجهاز، استخدم زر
+            «تصدير البيانات» لحفظ نسخة على جهازك، و«استيراد البيانات» لاستعادتها.
+          </div>
+        </CardContent>
       </Card>
 
       <Tabs defaultValue="favorites">
@@ -1480,7 +1549,9 @@ export function AboutView() {
                   <Badge variant="secondary" className="text-[10px] mr-2">محدّث</Badge>
                 </div>
               </div>
-              <p className="text-xs text-foreground/85 leading-6 mt-1">{cv.notes}</p>
+              <p className="text-xs text-foreground/85 leading-6 mt-1 bidi-rtl" dir="rtl">
+                <BidiText>{cv.notes}</BidiText>
+              </p>
               <a
                 href={cv.sourceUrl}
                 target="_blank"
